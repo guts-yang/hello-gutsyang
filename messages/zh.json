@@ -1,0 +1,77 @@
+{
+  "site": {
+    "title": "Chenyliao · 个人空间",
+    "description": "华南理工大学 CS · AI 算法 / AI 应用 / 全栈方向，专注大模型机器遗忘学习与多智能体架构。",
+    "nameZh": "廖晨"
+  },
+  "nav": {
+    "home": "首页",
+    "projects": "项目",
+    "experience": "经历",
+    "blog": "博客",
+    "admin": "后台",
+    "downloadResume": "下载简历"
+  },
+  "hero": {
+    "greeting": "你好，我是",
+    "role": "AI 算法工程师 · 全栈开发者",
+    "slogan": "专注大模型机器遗忘学习与多智能体架构",
+    "cta": {
+      "askAi": "问问关于我",
+      "viewProjects": "看作品集"
+    }
+  },
+  "sections": {
+    "ai": {
+      "title": "AI 助手",
+      "subtitle": "用自然语言问问关于我的一切",
+      "placeholder": "试试：你做过最硬核的项目是什么？",
+      "send": "发送",
+      "thinking": "思考中…",
+      "openFull": "进入全屏对话"
+    },
+    "projects": {
+      "title": "硬核项目矩阵",
+      "subtitle": "学术研究与工程落地双向输出",
+      "academic": "学术科研",
+      "engineering": "全栈工程",
+      "viewMore": "查看详情"
+    },
+    "experience": {
+      "title": "工作与实践",
+      "subtitle": "在真实场景中验证想法",
+      "viewMore": "查看详情"
+    },
+    "honors": {
+      "title": "综合素养矩阵",
+      "subtitle": "悬停翻面看故事",
+      "morality": "德 · 领导力",
+      "wisdom": "智 · 钻研力",
+      "athletics": "体 · 抗压力",
+      "labor": "劳 · 奉献"
+    },
+    "timeline": {
+      "title": "成长时间轴",
+      "subtitle": "从课堂到赛场到实验室"
+    },
+    "education": {
+      "title": "教育背景",
+      "subtitle": "持续学习是底色"
+    }
+  },
+  "social": {
+    "github": "GitHub",
+    "wechat": "微信",
+    "email": "Email",
+    "wechatTip": "扫码加我为好友"
+  },
+  "footer": {
+    "made": "用 Next.js 与 Tailwind 手工编写",
+    "copyright": "© {year} Chenyliao · 保留所有权利"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
+  }
+}

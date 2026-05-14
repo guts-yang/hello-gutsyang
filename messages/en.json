@@ -1,0 +1,77 @@
+{
+  "site": {
+    "title": "Chenyliao · Personal Space",
+    "description": "SCUT CS · AI algorithms / AI applications / Full-stack. Focused on LLM machine unlearning and multi-agent architecture.",
+    "nameZh": "Chen Liao"
+  },
+  "nav": {
+    "home": "Home",
+    "projects": "Projects",
+    "experience": "Experience",
+    "blog": "Blog",
+    "admin": "Admin",
+    "downloadResume": "Resume PDF"
+  },
+  "hero": {
+    "greeting": "Hi, I'm",
+    "role": "AI Engineer · Full-stack Developer",
+    "slogan": "Focused on LLM machine unlearning and multi-agent architectures",
+    "cta": {
+      "askAi": "Ask my AI",
+      "viewProjects": "See work"
+    }
+  },
+  "sections": {
+    "ai": {
+      "title": "AI Concierge",
+      "subtitle": "Ask anything about me in natural language",
+      "placeholder": "Try: What's the most hardcore project you've shipped?",
+      "send": "Send",
+      "thinking": "Thinking…",
+      "openFull": "Open full chat"
+    },
+    "projects": {
+      "title": "Project Matrix",
+      "subtitle": "Research-grade and production engineering, side by side",
+      "academic": "Research",
+      "engineering": "Engineering",
+      "viewMore": "View details"
+    },
+    "experience": {
+      "title": "Work & Practice",
+      "subtitle": "Validating ideas in real environments",
+      "viewMore": "View details"
+    },
+    "honors": {
+      "title": "Soft-skills Matrix",
+      "subtitle": "Hover to flip and read the story",
+      "morality": "Leadership",
+      "wisdom": "Curiosity",
+      "athletics": "Resilience",
+      "labor": "Contribution"
+    },
+    "timeline": {
+      "title": "Growth Timeline",
+      "subtitle": "Classroom → competition → lab"
+    },
+    "education": {
+      "title": "Education",
+      "subtitle": "Always learning"
+    }
+  },
+  "social": {
+    "github": "GitHub",
+    "wechat": "WeChat",
+    "email": "Email",
+    "wechatTip": "Scan to add me on WeChat"
+  },
+  "footer": {
+    "made": "Hand-crafted with Next.js & Tailwind",
+    "copyright": "© {year} Chenyliao · All rights reserved"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  }
+}

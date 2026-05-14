@@ -1,0 +1,69 @@
+import type { Metadata } from 'next';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { ThemeProvider } from '@/components/theme-provider';
+import { AuroraBackground } from '@/components/aurora-background';
+import { SiteHeader } from '@/components/site-header';
+import { SiteFooter } from '@/components/site-footer';
+import { EasterEggs } from '@/components/easter-eggs';
+import { locales, type Locale } from '@/i18n';
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({
+  params: { locale },
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: 'site' });
+  return {
+    title: { default: t('title'), template: `%s · ${t('title')}` },
+    description: t('description'),
+    alternates: {
+      canonical: `/${locale}`,
+      languages: {
+        zh: '/zh',
+        en: '/en',
+      },
+    },
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      type: 'website',
+      url: `/${locale}`,
+    },
+  };
+}
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: { locale: string };
+}) {
+  const { locale } = params;
+  if (!locales.includes(locale as Locale)) notFound();
+
+  // Required for next-intl static rendering
+  setRequestLocale(locale);
+
+  const messages = await getMessages();
+
+  return (
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <ThemeProvider>
+        <AuroraBackground />
+        <EasterEggs />
+        <div className="flex min-h-screen flex-col">
+          <SiteHeader />
+          <main className="flex-1 pt-6">{children}</main>
+          <SiteFooter />
+        </div>
+      </ThemeProvider>
+    </NextIntlClientProvider>
+  );
+}
