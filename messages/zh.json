@@ -1,8 +1,8 @@
 {
   "site": {
-    "title": "Chenyliao · 个人空间",
+    "title": "gutsyang · 个人空间",
     "description": "华南理工大学 CS · AI 算法 / AI 应用 / 全栈方向，专注大模型机器遗忘学习与多智能体架构。",
-    "nameZh": "廖晨"
+    "nameZh": "廖晨扬"
   },
   "nav": {
     "home": "首页",
@@ -27,8 +27,7 @@
       "subtitle": "用自然语言问问关于我的一切",
       "placeholder": "试试：你做过最硬核的项目是什么？",
       "send": "发送",
-      "thinking": "思考中…",
-      "openFull": "进入全屏对话"
+      "thinking": "思考中…"
     },
     "projects": {
       "title": "硬核项目矩阵",
@@ -65,9 +64,15 @@
     "email": "Email",
     "wechatTip": "扫码加我为好友"
   },
+  "ai": {
+    "trigger": "Ask AI",
+    "panelTitle": "AI 助手",
+    "panelHint": "用自然语言问关于我的一切",
+    "close": "关闭"
+  },
   "footer": {
     "made": "用 Next.js 与 Tailwind 手工编写",
-    "copyright": "© {year} Chenyliao · 保留所有权利"
+    "copyright": "© {year} gutsyang · 保留所有权利"
   },
   "theme": {
     "light": "浅色",

@@ -16,7 +16,7 @@ export function EducationCard({
 }) {
   const t = useTranslations('sections.education');
   return (
-    <GlassCard className={cn('h-full', className)}>
+    <GlassCard density="compact" className={cn('h-full', className)}>
       <div className="flex h-full flex-col justify-between gap-3">
         <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-muted-foreground">
           <GraduationCap className="h-3.5 w-3.5" />

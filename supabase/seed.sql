@@ -1,21 +1,22 @@
 -- Seed data mirrors lib/profile.ts so the site keeps the same content
 -- whether it reads from Supabase or the local fallback.
 
-insert into public.profile (id, name_zh, name_en, handle, role_zh, role_en, slogan_zh, slogan_en, bio_zh, bio_en, socials)
+insert into public.profile (id, name_zh, name_en, handle, role_zh, role_en, slogan_zh, slogan_en, bio_zh, bio_en, avatar_url, socials)
 values (
   'main',
-  '廖晨',
-  'Chen Liao',
-  'chenyliao',
+  '廖晨扬',
+  'gutsyang',
+  'gutsyang',
   'AI 算法工程师 · 全栈开发者',
   'AI Engineer · Full-stack Developer',
   '专注大模型机器遗忘学习与多智能体架构',
   'Focused on LLM machine unlearning & multi-agent architectures',
   '华南理工大学计算机科学专业，研究方向为大模型机器遗忘学习；同时具备多智能体系统、量化策略、全栈应用的工程经验。',
   'CS undergrad at South China University of Technology, researching LLM machine unlearning. I also build multi-agent systems, quant strategies, and full-stack apps.',
+  '/avatar-placeholder.svg',
   '[
-    {"type":"github","href":"https://github.com/chenyliao","label":"@chenyliao"},
-    {"type":"email","href":"mailto:hi@chenyliao.dev","label":"hi@chenyliao.dev"},
+    {"type":"github","href":"https://github.com/guts-yang","label":"@gutsyang"},
+    {"type":"email","href":"mailto:578165807@qq.com","label":"578165807@qq.com"},
     {"type":"wechat","href":"#wechat","label":"WeChat QR"}
   ]'::jsonb
 )
@@ -29,6 +30,7 @@ on conflict (id) do update set
   slogan_en = excluded.slogan_en,
   bio_zh = excluded.bio_zh,
   bio_en = excluded.bio_en,
+  avatar_url = excluded.avatar_url,
   socials = excluded.socials;
 
 insert into public.projects (slug, kind, title_zh, title_en, tagline_zh, tagline_en, summary_zh, summary_en, tags, highlights, started_at, display_order)

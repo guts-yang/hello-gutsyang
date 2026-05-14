@@ -7,7 +7,7 @@ import '../globals.css';
 const fontSans = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'Admin · Chenyliao',
+  title: 'Admin · gutsyang',
   robots: { index: false, follow: false },
 };
 

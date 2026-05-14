@@ -15,10 +15,14 @@ export function ImageUploader({
   name,
   defaultUrl,
   folder = 'projects',
+  variant = 'default',
+  caption,
 }: {
   name: string;
   defaultUrl?: string;
   folder?: string;
+  variant?: 'default' | 'avatar';
+  caption?: string;
 }) {
   const [url, setUrl] = React.useState(defaultUrl ?? '');
   const [busy, setBusy] = React.useState(false);
@@ -48,19 +52,37 @@ export function ImageUploader({
   return (
     <div className="space-y-2">
       <input type="hidden" name={name} value={url} />
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt="preview" className="h-16 w-16 rounded-xl object-cover" />
+          <img
+            src={url}
+            alt="preview"
+            className={
+              variant === 'avatar'
+                ? 'h-20 w-20 rounded-full border border-white/50 object-cover shadow-sm'
+                : 'h-16 w-16 rounded-xl object-cover'
+            }
+          />
         ) : (
-          <div className="grid h-16 w-16 place-items-center rounded-xl border border-dashed border-white/40 dark:border-white/10 text-muted-foreground">
+          <div
+            className={
+              variant === 'avatar'
+                ? 'grid h-20 w-20 place-items-center rounded-full border border-dashed border-white/50 dark:border-white/10 bg-white/40 text-muted-foreground'
+                : 'grid h-16 w-16 place-items-center rounded-xl border border-dashed border-white/40 dark:border-white/10 text-muted-foreground'
+            }
+          >
             <ImageIcon className="h-5 w-5" />
           </div>
         )}
-        <div className="space-y-1">
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium text-foreground">
+            {variant === 'avatar' ? '当前头像' : '当前图片'}
+          </p>
+          {caption && <p className="text-xs text-muted-foreground">{caption}</p>}
           <Button type="button" size="sm" variant="outline" onClick={() => inputRef.current?.click()} disabled={busy}>
             <Upload className="h-3.5 w-3.5" />
-            {busy ? '上传中…' : url ? '更换' : '上传图片'}
+            {busy ? '上传中…' : url ? '更换图片' : '上传图片'}
           </Button>
           <input ref={inputRef} type="file" accept="image/*" hidden onChange={onPick} />
           {err && <p className="text-xs text-rose-500">{err}</p>}

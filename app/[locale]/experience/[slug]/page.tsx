@@ -43,7 +43,7 @@ export default async function ExperienceDetailPage({
 
   return (
     <div>
-      <div className="mx-auto w-full max-w-4xl px-4 pb-2 pt-2 sm:px-6">
+      <div className="mx-auto w-full max-w-4xl px-4 pb-2 pt-2 sm:px-6 lg:px-10">
         <BackLink />
       </div>
       <DetailShell layoutId={`experience-${exp.slug}`}>

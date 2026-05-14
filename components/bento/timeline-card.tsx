@@ -28,7 +28,7 @@ export function TimelineCard({
   const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
 
   return (
-    <GlassCard className={cn('h-full', className)}>
+    <GlassCard density="cozy" className={cn('h-full overflow-x-hidden', className)}>
       <div className="flex flex-col gap-6">
         <div>
           <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
@@ -36,7 +36,7 @@ export function TimelineCard({
 
         <div className="relative pl-2 sm:pl-0">
           <div className="absolute left-2 top-0 bottom-0 hidden w-px bg-gradient-to-b from-transparent via-[hsl(var(--primary)/0.4)] to-transparent sm:block" />
-          <ol className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-5">
+          <ol className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             {sorted.map((evt, i) => (
               <motion.li
                 key={evt.date + evt.title.zh}

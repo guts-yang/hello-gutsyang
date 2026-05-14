@@ -129,6 +129,7 @@ const staticProfileBundle: ProfileBundle = {
   role: staticProfile.role,
   slogan: staticProfile.slogan,
   bio: staticProfile.bio,
+  avatarUrl: staticProfile.avatarUrl,
   socials: staticProfile.socials as unknown as SocialJson[],
 };
 

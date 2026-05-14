@@ -57,9 +57,10 @@ export type Education = {
 };
 
 export const profile = {
-  nameZh: '廖晨',
-  nameEn: 'Chen Liao',
-  handle: 'chenyliao',
+  nameZh: '廖晨扬',
+  nameEn: 'gutsyang',
+  handle: 'gutsyang',
+  avatarUrl: '/avatar-placeholder.svg',
   slogan: {
     zh: '专注大模型机器遗忘学习与多智能体架构',
     en: 'Focused on LLM machine unlearning & multi-agent architectures',
@@ -73,8 +74,8 @@ export const profile = {
     en: 'CS undergrad at South China University of Technology, researching LLM machine unlearning. I also build multi-agent systems, quant strategies, and full-stack apps.',
   } satisfies LocalizedString,
   socials: [
-    { type: 'github', href: 'https://github.com/chenyliao', label: '@chenyliao' },
-    { type: 'email', href: 'mailto:hi@chenyliao.dev', label: 'hi@chenyliao.dev' },
+    { type: 'github', href: 'https://github.com/guts-yang', label: '@gutsyang' },
+    { type: 'email', href: 'mailto:578165807@qq.com', label: '578165807@qq.com' },
     { type: 'wechat', href: '#wechat', label: 'WeChat QR' },
   ] satisfies SocialLink[],
 } as const;
