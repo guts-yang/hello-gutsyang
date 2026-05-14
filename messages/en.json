@@ -1,8 +1,8 @@
 {
   "site": {
-    "title": "Chenyliao · Personal Space",
+    "title": "gutsyang · Personal Space",
     "description": "SCUT CS · AI algorithms / AI applications / Full-stack. Focused on LLM machine unlearning and multi-agent architecture.",
-    "nameZh": "Chen Liao"
+    "nameZh": "gutsyang"
   },
   "nav": {
     "home": "Home",
@@ -27,8 +27,7 @@
       "subtitle": "Ask anything about me in natural language",
       "placeholder": "Try: What's the most hardcore project you've shipped?",
       "send": "Send",
-      "thinking": "Thinking…",
-      "openFull": "Open full chat"
+      "thinking": "Thinking…"
     },
     "projects": {
       "title": "Project Matrix",
@@ -65,9 +64,15 @@
     "email": "Email",
     "wechatTip": "Scan to add me on WeChat"
   },
+  "ai": {
+    "trigger": "Ask AI",
+    "panelTitle": "AI Concierge",
+    "panelHint": "Ask anything about me in natural language",
+    "close": "Close"
+  },
   "footer": {
     "made": "Hand-crafted with Next.js & Tailwind",
-    "copyright": "© {year} Chenyliao · All rights reserved"
+    "copyright": "© {year} gutsyang · All rights reserved"
   },
   "theme": {
     "light": "Light",

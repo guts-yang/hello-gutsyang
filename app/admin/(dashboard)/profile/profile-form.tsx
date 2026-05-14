@@ -35,8 +35,14 @@ export function ProfileForm({ row }: { row: DbProfileRow | null }) {
           <Field label="Handle" hint="GitHub / 用户名">
             <TextInput name="handle" defaultValue={row?.handle ?? ''} required />
           </Field>
-          <Field label="头像">
-            <ImageUploader name="avatar_url" defaultUrl={row?.avatar_url ?? ''} folder="avatars" />
+          <Field label="头像" hint="支持 png / jpg / webp">
+            <ImageUploader
+              name="avatar_url"
+              defaultUrl={row?.avatar_url ?? ''}
+              folder="avatars"
+              variant="avatar"
+              caption="上传后会同步显示在首页 Hero 头像区域。"
+            />
           </Field>
           <Field label="Role（中）">
             <TextInput name="role_zh" defaultValue={row?.role_zh ?? ''} />

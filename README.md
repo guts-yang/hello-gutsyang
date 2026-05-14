@@ -1,8 +1,8 @@
 <div align="center">
 
-# hello-chenyliao
+# hello-gutsyang
 
-**廖晨扬 / chenyliao (Tony) 的个人主页 · Personal Site**
+**廖晨扬 / gutsyang (Tony) 的个人主页 · Personal Site**
 
 一个支持中英双语、内置 AI 聊天和 CMS 后台的 Next.js 14 个人作品集站点。  
 A bilingual personal portfolio built on Next.js 14, with a built-in AI chat and admin CMS.
@@ -28,7 +28,7 @@ A bilingual personal portfolio built on Next.js 14, with a built-in AI chat and 
 
 ### 项目简介
 
-`hello-chenyliao` 是一个为「单人作者 + 多场景展示」设计的现代个人主页：
+`hello-gutsyang` 是一个为「单人作者 + 多场景展示」设计的现代个人主页：
 
 - **前台**：基于 Bento Grid 的首页 + 经历、项目、荣誉详情页，支持中英双语切换
 - **后台**：`/admin` 内置轻量 CMS，可在线管理 profile / experiences / honors / projects，无需直接改数据库
@@ -82,7 +82,7 @@ npm run dev
 ### 项目结构
 
 ```
-hello-chenyliao/
+hello-gutsyang/
 ├── app/
 │   ├── [locale]/          # 双语前台（zh / en）
 │   ├── admin/             # CMS 后台 + 登录页（中间件鉴权）
@@ -124,7 +124,7 @@ hello-chenyliao/
 
 ### Overview
 
-`hello-chenyliao` is a modern personal site designed for a "single-author, multi-surface" portfolio:
+`hello-gutsyang` is a modern personal site designed for a "single-author, multi-surface" portfolio:
 
 - **Front-of-house** — A Bento-grid homepage plus dedicated detail pages for experiences, projects and honors, with seamless Chinese/English switching
 - **Back-of-house** — A lightweight CMS at `/admin` for editing profile / experiences / honors / projects in the browser, no direct DB access needed
@@ -179,9 +179,9 @@ Required environment variables — see [`.env.example`](./.env.example):
 
 ## 👤 Author
 
-- **Name** — 廖晨扬 / Tony Liao
-- **Handle** — [@chenyliao](https://github.com/guts-yang) (GitHub: `guts-yang`)
-- **Repo** — <https://github.com/guts-yang/hello-chenyliao>
+- **Name** — 廖晨扬 / gutsyang (Tony)
+- **Handle** — [@gutsyang](https://github.com/guts-yang) (GitHub: `guts-yang`)
+- **Repo** — <https://github.com/guts-yang/hello-gutsyang>
 
 ## 📄 License
 
