@@ -13,7 +13,7 @@ import (
 func TestNewServiceSeedsContent(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	svc, err := NewService(dir)
+	svc, err := NewService(dir, nil)
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -32,7 +32,7 @@ func TestNewServiceSeedsContent(t *testing.T) {
 func TestPersistIsAtomicAndCleansTempFile(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	svc, err := NewService(dir)
+	svc, err := NewService(dir, nil)
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestPersistIsAtomicAndCleansTempFile(t *testing.T) {
 func TestPersistRoundTripSurvivesReload(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	svc, err := NewService(dir)
+	svc, err := NewService(dir, nil)
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -84,7 +84,7 @@ func TestPersistRoundTripSurvivesReload(t *testing.T) {
 	}
 
 	// A fresh service must read back the persisted snapshot, not reseed.
-	svc2, err := NewService(dir)
+	svc2, err := NewService(dir, nil)
 	if err != nil {
 		t.Fatalf("reload NewService: %v", err)
 	}

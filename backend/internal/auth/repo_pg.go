@@ -163,6 +163,36 @@ func (r *pgSessionRepo) ByToken(ctx context.Context, token string) (*SessionReco
 	return &s, nil
 }
 
+func (r *pgSessionRepo) ByTokenWithUser(ctx context.Context, token string) (*SessionRecord, *UserRecord, error) {
+	if token == "" {
+		return nil, nil, ErrSessionNotFound
+	}
+	row := r.pool.QueryRow(ctx, `
+		select s.id, s.user_id, s.token, coalesce(s.ip, ''), coalesce(s.user_agent, ''),
+		       s.created_at, coalesce(s.last_seen_at, s.created_at), s.expires_at,
+		       u.id, u.email, u.password_hash, u.role, u.created_at
+		from admin_sessions s
+		join admin_users u on u.id = s.user_id
+		where s.token = $1
+	`, token)
+
+	var s SessionRecord
+	var u UserRecord
+	if err := row.Scan(
+		&s.ID, &s.UserID, &s.Token, &s.IP, &s.UserAgent, &s.CreatedAt, &s.LastSeenAt, &s.ExpiresAt,
+		&u.ID, &u.Email, &u.PasswordHash, &u.Role, &u.CreatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, ErrSessionNotFound
+		}
+		return nil, nil, fmt.Errorf("auth: pg session by-token with user: %w", err)
+	}
+	if s.ExpiresAt.Before(time.Now().UTC()) {
+		return nil, nil, ErrSessionNotFound
+	}
+	return &s, &u, nil
+}
+
 func (r *pgSessionRepo) Touch(ctx context.Context, token string, newExpiry, lastSeen time.Time) error {
 	tag, err := r.pool.Exec(ctx, `
 		update admin_sessions

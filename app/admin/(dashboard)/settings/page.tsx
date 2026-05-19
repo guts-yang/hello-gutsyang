@@ -1,7 +1,7 @@
 import { ChangePasswordCard } from './change-password-card';
 import { ChangeEmailCard } from './change-email-card';
 import { SessionsCard } from './sessions-card';
-import { listAdminSessions, requireAdminSession } from '@/lib/admin-api';
+import { getAdminSession, listAdminSessions } from '@/lib/admin-api';
 import type { AdminSessionListItem } from '@/lib/api-types';
 
 // Settings is a server component so the initial sessions render is auth-aware
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function AdminSettingsPage() {
-  const session = await requireAdminSession();
+  const session = await getAdminSession();
   let sessions: AdminSessionListItem[] = [];
   try {
     sessions = await listAdminSessions();

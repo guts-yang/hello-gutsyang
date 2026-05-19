@@ -15,8 +15,13 @@ export async function POST(req: NextRequest) {
       cache: 'no-store',
       signal: AbortSignal.timeout(8_000),
     });
-  } catch {
-    return Response.json({ ok: false, message: '后端无响应，请稍后再试' }, { status: 504 });
+  } catch (err: unknown) {
+    const hint =
+      process.env.NODE_ENV === 'development'
+        ? '无法连接 Go API。请确认已在另一终端运行 npm run dev:backend，且日志中有 Go API listening on :8081（没有 bind 端口冲突）。'
+        : '后端无响应，请稍后再试';
+    console.error('[admin/login] upstream failed:', err);
+    return Response.json({ ok: false, message: hint }, { status: 504 });
   }
 
   const headers = new Headers({

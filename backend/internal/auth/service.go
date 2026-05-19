@@ -200,8 +200,24 @@ func (s *Service) Session(ctx context.Context, token string) (*model.Session, er
 	if token == "" {
 		return nil, nil
 	}
-	record, err := s.sessions.ByToken(ctx, token)
-	if err != nil {
+	var record *SessionRecord
+	var user *UserRecord
+	var err error
+
+	record, user, err = s.sessions.ByTokenWithUser(ctx, token)
+	if errors.Is(err, ErrCombinedLookupUnsupported) {
+		record, err = s.sessions.ByToken(ctx, token)
+		if err != nil {
+			if errors.Is(err, ErrSessionNotFound) {
+				return nil, nil
+			}
+			return nil, err
+		}
+		user, err = s.users.ByID(ctx, record.UserID)
+		if err != nil {
+			return nil, nil
+		}
+	} else if err != nil {
 		if errors.Is(err, ErrSessionNotFound) {
 			return nil, nil
 		}
@@ -209,19 +225,15 @@ func (s *Service) Session(ctx context.Context, token string) (*model.Session, er
 	}
 
 	now := time.Now().UTC()
+	const touchInterval = 15 * time.Minute
 	if record.ExpiresAt.Sub(now) < s.refresh {
 		newExpiry := now.Add(s.ttl)
 		_ = s.sessions.Touch(ctx, token, newExpiry, now)
 		record.ExpiresAt = newExpiry
 		record.LastSeenAt = now
-	} else if now.Sub(record.LastSeenAt) > 5*time.Minute {
+	} else if now.Sub(record.LastSeenAt) > touchInterval {
 		_ = s.sessions.Touch(ctx, token, record.ExpiresAt, now)
 		record.LastSeenAt = now
-	}
-
-	user, err := s.users.ByID(ctx, record.UserID)
-	if err != nil {
-		return nil, nil
 	}
 
 	out := record.ToModel(user.Email, user.Role)

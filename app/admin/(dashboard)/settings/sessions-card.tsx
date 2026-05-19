@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/glass-card';
 import { Button } from '@/components/ui/button';
 import type { AdminSessionListItem } from '@/lib/api-types';
@@ -34,6 +35,7 @@ function shortenUA(ua: string) {
 }
 
 export function SessionsCard({ sessions }: { sessions: AdminSessionListItem[] }) {
+  const router = useRouter();
   const [busy, setBusy] = React.useState<string | null>(null);
   const [feedback, setFeedback] = React.useState<{ ok: boolean; message: string } | null>(null);
 
@@ -45,6 +47,7 @@ export function SessionsCard({ sessions }: { sessions: AdminSessionListItem[] })
     const result = await revokeSessionAction(id);
     setBusy(null);
     setFeedback(result);
+    if (result.ok) router.refresh();
   }
 
   async function revokeAll() {
@@ -53,6 +56,7 @@ export function SessionsCard({ sessions }: { sessions: AdminSessionListItem[] })
     const result = await revokeAllOtherSessionsAction();
     setBusy(null);
     setFeedback(result);
+    if (result.ok) router.refresh();
   }
 
   return (

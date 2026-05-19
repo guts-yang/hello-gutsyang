@@ -18,6 +18,9 @@ import type {
   SocialJson,
 } from '@/lib/api-types';
 import { fetchBackend } from '@/lib/backend';
+import { optionalUrl } from '@/lib/admin-zod';
+import type { AdminActionResult } from '@/lib/admin-action-result';
+import { actionError } from '@/lib/admin-action-result';
 
 function readFormString(fd: FormData, key: string, fallback = ''): string {
   const v = fd.get(key);
@@ -43,8 +46,7 @@ async function assertAdminSession() {
   await requireAdminSession();
 }
 
-function revalidateAll() {
-  revalidatePath('/', 'layout');
+function revalidateContent() {
   revalidatePath('/zh');
   revalidatePath('/en');
   revalidatePath('/admin', 'layout');
@@ -116,7 +118,7 @@ export async function saveProfile(_: unknown, fd: FormData) {
     const text = await response.text().catch(() => '保存失败');
     return { ok: false as const, message: text };
   }
-  revalidateAll();
+  revalidateContent();
   return { ok: true as const, message: '已保存' };
 }
 
@@ -133,8 +135,8 @@ const ProjectSchema = z.object({
   tagline_en: z.string(),
   summary_zh: z.string(),
   summary_en: z.string(),
-  link: z.string().url().nullable().optional(),
-  repo: z.string().url().nullable().optional(),
+  link: optionalUrl.optional(),
+  repo: optionalUrl.optional(),
   cover_url: z.string().nullable().optional(),
   started_at: z.string().min(1),
   ended_at: z.string().nullable().optional(),
@@ -192,19 +194,22 @@ export async function saveProject(_: unknown, fd: FormData) {
     return { ok: false as const, message: text };
   }
 
-  revalidateAll();
-  redirect('/admin/projects');
+  revalidateContent();
+  redirect('/admin/projects?saved=1');
 }
 
-export async function deleteProject(id: string) {
+export async function deleteProject(id: string): Promise<AdminActionResult> {
   await assertAdminSession();
   const response = await fetchBackend(
     `/v1/admin/projects/${id}`,
     { method: 'DELETE' },
     { auth: true, revalidate: false },
   );
-  if (!response.ok) throw new Error(await response.text());
-  revalidateAll();
+  if (!response.ok) {
+    return actionError((await response.text().catch(() => '')) || '删除失败');
+  }
+  revalidateContent();
+  return { ok: true };
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -219,7 +224,7 @@ const ExperienceSchema = z.object({
   role_en: z.string(),
   summary_zh: z.string(),
   summary_en: z.string(),
-  link: z.string().url().nullable().optional(),
+  link: optionalUrl.optional(),
   started_at: z.string().min(1),
   ended_at: z.string().nullable().optional(),
   display_order: z.coerce.number().int(),
@@ -266,19 +271,22 @@ export async function saveExperience(_: unknown, fd: FormData) {
     return { ok: false as const, message: text };
   }
 
-  revalidateAll();
-  redirect('/admin/experiences');
+  revalidateContent();
+  redirect('/admin/experiences?saved=1');
 }
 
-export async function deleteExperience(id: string) {
+export async function deleteExperience(id: string): Promise<AdminActionResult> {
   await assertAdminSession();
   const response = await fetchBackend(
     `/v1/admin/experiences/${id}`,
     { method: 'DELETE' },
     { auth: true, revalidate: false },
   );
-  if (!response.ok) throw new Error(await response.text());
-  revalidateAll();
+  if (!response.ok) {
+    return actionError((await response.text().catch(() => '')) || '删除失败');
+  }
+  revalidateContent();
+  return { ok: true };
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -326,19 +334,22 @@ export async function saveHonor(_: unknown, fd: FormData) {
     return { ok: false as const, message: text };
   }
 
-  revalidateAll();
-  redirect('/admin/honors');
+  revalidateContent();
+  redirect('/admin/honors?saved=1');
 }
 
-export async function deleteHonor(id: string) {
+export async function deleteHonor(id: string): Promise<AdminActionResult> {
   await assertAdminSession();
   const response = await fetchBackend(
     `/v1/admin/honors/${id}`,
     { method: 'DELETE' },
     { auth: true, revalidate: false },
   );
-  if (!response.ok) throw new Error(await response.text());
-  revalidateAll();
+  if (!response.ok) {
+    return actionError((await response.text().catch(() => '')) || '删除失败');
+  }
+  revalidateContent();
+  return { ok: true };
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
