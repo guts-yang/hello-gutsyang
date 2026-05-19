@@ -7,8 +7,11 @@ import { cn } from '@/lib/utils';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const options: Array<{ value: 'light' | 'dark' | 'system'; icon: React.ReactNode }> = [
     { value: 'light', icon: <Sun className="h-3.5 w-3.5" /> },

@@ -1,25 +1,35 @@
-<div align="center">
+# Personal Site Template
 
+<<<<<<< Updated upstream
 # hello-chenyliao
 
 **廖晨扬 / chenyliao (Tony) 的个人主页 · Personal Site**
+=======
+一个开箱即用的**个人主页全栈模板**。
 
-一个支持中英双语、内置 AI 聊天和 CMS 后台的 Next.js 14 个人作品集站点。  
-A bilingual personal portfolio built on Next.js 14, with a built-in AI chat and admin CMS.
+- 前端：`Next.js` 负责页面、路由、国际化
+- 后端：`Go API` 负责内容管理、登录、媒体上传、AI 对话、PDF 导出
+- 数据：内容默认走本地文件快照；管理员鉴权（用户、会话、登录失败、审计）落 Postgres，开发默认 in-memory 兜底
+>>>>>>> Stashed changes
 
-<br />
+## 架构
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Radix UI](https://img.shields.io/badge/Radix_UI-1-161618?style=for-the-badge&logo=radixui&logoColor=white)](https://www.radix-ui.com/)
-[![Framer Motion](https://img.shields.io/badge/Framer_Motion-11-0055FF?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion/)
-[![Supabase](https://img.shields.io/badge/Supabase-2-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
-[![next-intl](https://img.shields.io/badge/next--intl-3-FF6B6B?style=for-the-badge)](https://next-intl-docs.vercel.app/)
-[![DeepSeek](https://img.shields.io/badge/DeepSeek-AI-4D6BFE?style=for-the-badge)](https://api.deepseek.com)
-[![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+```mermaid
+flowchart LR
+  User --> NextFrontend
+  NextFrontend --> GoApi
+  NextFrontend --> AdminProxy
+  AdminProxy --> GoApi
+  GoApi --> ContentStore
+  GoApi --> MediaStore
+  GoApi --> DeepSeek
+```
 
+- `app/`：Next.js 前端 + 极薄的 API 代理（只负责把请求转给 Go）
+- `backend/`：Go 后端，含 `auth` / `content` / `media` / `ai` / `pdf` / `ratelimit`
+- `lib/`：前端访问后端的工具层、共享 DTO、静态回退数据
+
+<<<<<<< Updated upstream
 </div>
 
 ---
@@ -36,51 +46,114 @@ A bilingual personal portfolio built on Next.js 14, with a built-in AI chat and 
 - **简历导出**：`/api/resume.pdf` 用 `@react-pdf/renderer` 即时生成 PDF 简历
 
 ### 技术栈
+=======
+## 技术栈
+>>>>>>> Stashed changes
 
 | 类别 | 技术 |
 | --- | --- |
-| 框架 | Next.js 14（App Router · Server Components · Server Actions） |
-| 语言 | TypeScript 5 |
-| UI | Tailwind CSS · Radix UI · Framer Motion · Lucide Icons |
-| 国际化 | next-intl（`zh` 默认，`en` 备选，路径前缀策略） |
-| 数据 / 鉴权 | Supabase（PostgreSQL + Auth + Storage，通过 `@supabase/ssr`） |
-| AI | DeepSeek Chat API（通过 `ai` SDK 流式输出） |
-| PDF | @react-pdf/renderer |
-| 部署 | Vercel（推荐） |
+| 前端 | Next.js 15 · React 18 · TypeScript 5 |
+| UI | Tailwind CSS · Radix UI · Framer Motion · Lucide |
+| 字体 | Inter (sans) · Fraunces (display) · JetBrains Mono · Ma Shan Zheng（中文姓名艺术体，仅用于首页 hero） |
+| 国际化 | next-intl（中 / 英） |
+| 后端 | Go 1.25 · 标准库 `net/http` |
+| 内容存储 | 本地 `content.json` 原子写入（可平迁 Postgres） |
+| 鉴权 | Postgres 持久化 + bcrypt + HttpOnly Strict cookie + CSRF double-submit + 失败锁定 + 审计日志 |
+| 限流 | 按 IP 令牌桶 + 按邮箱/IP 慢路径锁定 |
+| 媒体上传 | 预签发 URL + 路径穿越防御 + MIME / 大小限制 |
+| AI | DeepSeek Chat API（Go 端代理，支持流式） |
+| PDF | Go 端生成简历 PDF |
 
-### 本地启动
+## 本地启动
+
+### 1. 安装依赖
 
 ```bash
-# 1. 安装依赖
 npm install
-
-# 2. 复制环境变量模板并填入真实值
-cp .env.example .env
-
-# 3. 启动开发服务器
-npm run dev
-# 访问 http://localhost:3000 （会自动重定向到 /zh）
 ```
 
-需要在 `.env` 中至少配置：
+### 2. 启动 Postgres（可选但推荐）
 
-- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` —— Supabase 项目
-- `SUPABASE_SERVICE_ROLE_KEY` —— 仅服务器端使用，**切勿暴露到客户端**
-- `ADMIN_EMAIL_ALLOWLIST` —— 允许登录后台的邮箱（逗号分隔）
-- `DEEPSEEK_API_KEY` —— 启用 AI 聊天所需
+```bash
+docker compose up -d
+```
 
-### 常用脚本
+不带 `DATABASE_URL` 时，鉴权会退化为内存模式：进程重启会丢用户、会话、登录失败计数和审计——只适合本地试跑。
+
+### 3. 配置环境变量
+
+复制 `.env.example` 为 `.env.local`，至少填：
+
+```bash
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+GO_API_URL=http://localhost:8081
+GO_API_INTERNAL_URL=http://127.0.0.1:8081
+BACKEND_ADDR=:8081
+BACKEND_DATA_DIR=.backend-data
+APP_ORIGIN=http://localhost:3000
+
+# Postgres（管理员鉴权）
+DATABASE_URL=postgres://hello:hello@127.0.0.1:5432/hello_gutsyang?sslmode=disable
+
+ADMIN_BOOTSTRAP_EMAIL=admin@example.com
+ADMIN_BOOTSTRAP_PASSWORD_HASH=
+# 不填 hash 时可以临时用明文 bootstrap：
+ADMIN_BOOTSTRAP_PASSWORD=
+
+DEEPSEEK_API_KEY=
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+# 可选模型：deepseek-v4-flash（快 & 便宜，默认）/ deepseek-v4-pro（质量更高）
+DEEPSEEK_MODEL=deepseek-v4-flash
+```
+
+> 不填 `DEEPSEEK_API_KEY` 时，AI 会自动走演示模式。
+
+### 4. 跑数据库迁移
+
+```bash
+cd backend && go run ./cmd/api migrate up
+```
+
+### 5. 生成管理员密码哈希（推荐）
+
+```bash
+cd backend && go run ./cmd/api hash 'your-strong-password'
+```
+
+把输出贴到 `ADMIN_BOOTSTRAP_PASSWORD_HASH`，并清空 `ADMIN_BOOTSTRAP_PASSWORD`。
+首次启动时会把这条用户写入 Postgres，之后即可清空 env，依赖数据库即可。
+
+### 6. 启动
+
+```bash
+npm run dev:backend   # Go API   → :8081
+npm run dev:frontend  # Next.js  → :3000
+```
+
+打开：
+
+- 前台：<http://localhost:3000>
+- 后台：<http://localhost:3000/admin>
+- 健康检查：<http://localhost:8081/healthz>
+
+## 常用脚本
 
 | 命令 | 作用 |
 | --- | --- |
-| `npm run dev` | 启动开发服务器（含热更新） |
-| `npm run build` | 生产构建 |
-| `npm run start` | 启动构建产物 |
-| `npm run lint` | ESLint 检查 |
-| `npm run typecheck` | TypeScript 类型检查 |
+| `npm run dev` | Next 前端开发服 |
+| `npm run dev:backend` | 启动 Go API |
+| `npm run build` / `npm run start` | 构建 / 启动生产前端 |
+| `npm run lint` / `npm run typecheck` | 代码检查 |
+| `npm run test:backend` | Go 单元测试（含端到端 httptest） |
+| `npm run db:up` / `db:down` | docker compose 启停 Postgres |
+| `npm run db:migrate` / `db:status` | 跑迁移 / 查看已应用版本 |
+| `npm run admin:reset-password admin@example.com` | 离线重置管理员密码 |
+| `npm run admin:set-email admin@example.com new@example.com` | 离线改邮箱 |
 
-### 项目结构
+## 接口速查
 
+<<<<<<< Updated upstream
 ```
 hello-chenyliao/
 ├── app/
@@ -111,49 +184,60 @@ hello-chenyliao/
 ├── middleware.ts          # i18n + 后台鉴权
 └── next.config.mjs
 ```
+=======
+**Public**：`/v1/public/home` `/profile` `/projects[/:slug]` `/experiences[/:slug]` `/honors` `/education` `/timeline`
+>>>>>>> Stashed changes
 
-### 分支策略
+**Admin**：`/v1/admin/login` `/logout` `/session` `/password` `/email` `/sessions` `/audit` `/profile` `/projects` `/experiences` `/honors` `/media/upload-url`
 
-- `main` —— 受保护的发布分支，对应生产环境
-- `develop` —— 默认开发分支，所有功能分支从这里切出，合并回这里后再 PR 进 `main`
-- `feat/*` · `fix/*` · `chore/*` —— 单功能短生命周期分支
+**慢路径**：`POST /v1/ai/chat`、`GET /v1/pdf/resume?lang=zh|en`
 
----
+> 登录 / AI / PDF 三处默认带 IP 限流。
 
-## 🌐 English
+## 管理员鉴权
 
-### Overview
+- **持久化**：用户、会话、登录失败、审计日志全部落 Postgres（`backend/migrations/`）
+- **会话**：HttpOnly + `SameSite=Strict` + 滑动续期；可在 `/admin/settings` 列出并踢出其他设备
+- **CSRF**：登录时同时下发 csrf cookie，`/v1/admin/*` 的写操作必须附带 `X-CSRF-Token` 头部
+- **失败锁定**：每 IP 或每邮箱在 15 分钟内累计 5 次失败 → 429 + `Retry-After`
+- **审计**：登录、改密、改邮箱、踢会话、CMS 增删改写入 `admin_audit`，前端在 `/admin/audit` 可视化
+- **运维**：忘记密码用 `go run ./cmd/api reset-password admin@example.com`，改邮箱用 `set-email`，重启即生效
 
+<<<<<<< Updated upstream
 `hello-chenyliao` is a modern personal site designed for a "single-author, multi-surface" portfolio:
+=======
+## 默认安全与稳定性
+>>>>>>> Stashed changes
 
-- **Front-of-house** — A Bento-grid homepage plus dedicated detail pages for experiences, projects and honors, with seamless Chinese/English switching
-- **Back-of-house** — A lightweight CMS at `/admin` for editing profile / experiences / honors / projects in the browser, no direct DB access needed
-- **AI Chat** — `/chat` connects to DeepSeek so visitors can "ask the author" — identity context is injected via `lib/ai/system-prompt.ts`
-- **Resume Export** — `/api/resume.pdf` renders a PDF résumé on-the-fly using `@react-pdf/renderer`
+- 管理员密码：bcrypt 存储，明文 bootstrap 启动即丢弃
+- CORS：白名单匹配，不回显任意 Origin
+- HTTP 超时：`ReadHeader=5s` / `Read=15s` / `Write=5min` / `Idle=2min`
+- 媒体上传：路径穿越防御 + 大小上限 + MIME 白名单 + 过期 ticket 自动回收
+- 错误响应：5xx 统一稳定 message，堆栈仅入日志
+- Next → Go：默认 8s 超时；admin middleware 5s；chat / pdf 代理 60s
 
-### Tech Stack
+## 上线核对（必做）
 
-| Category | Stack |
-| --- | --- |
-| Framework | Next.js 14 (App Router · RSC · Server Actions) |
-| Language | TypeScript 5 |
-| UI | Tailwind CSS · Radix UI · Framer Motion · Lucide |
-| i18n | next-intl (default `zh`, fallback `en`, path-prefix strategy) |
-| Data / Auth | Supabase (Postgres + Auth + Storage via `@supabase/ssr`) |
-| AI | DeepSeek Chat API (streamed through the `ai` SDK) |
-| PDF | @react-pdf/renderer |
-| Hosting | Vercel (recommended) |
+- [ ] `APP_ORIGIN` 指向 https，反代或 LB 终止 TLS
+- [ ] `COOKIE_SECURE=on`（或保持 `auto` 但确认 origin 是 https）
+- [ ] `DATABASE_URL` 指向托管 Postgres，且执行过 `migrate up`
+- [ ] `ADMIN_BOOTSTRAP_PASSWORD_HASH` 仅一次性使用：首次启动后从 secret store 删除
+- [ ] `ADMIN_BOOTSTRAP_PASSWORD` 在生产环境**永远空着**
+- [ ] 把 Postgres 的 `admin_users` / `admin_sessions` / `admin_audit` / `admin_login_attempts` 纳入备份策略
+- [ ] 验证：故意输错 5 次密码 → 收到 429 + `Retry-After`
+- [ ] 验证：随便从浏览器 devtools 删掉 csrf cookie → POST 写接口收到 403
 
-### Getting Started
+## 走向生产的下一步（可选）
 
-```bash
-npm install
-cp .env.example .env       # then fill in the real values
-npm run dev                # http://localhost:3000 (redirects to /zh)
-```
+1. `content` 从文件迁到 Postgres（`backend/migrations/001_init.sql` 已就绪）
+2. `cache` 与 `ratelimit` 从进程内迁到 Redis
+3. `media` 从本地迁到 S3 / MinIO
+4. 加结构化日志 + request id + 拆分 `/livez` `/readyz`
+5. 接 webhooks / Slack 给 `login.failure` / `login.locked` 实时告警
 
-Required environment variables — see [`.env.example`](./.env.example):
+## License
 
+<<<<<<< Updated upstream
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase project
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only, **never expose to the client**
 - `ADMIN_EMAIL_ALLOWLIST` — comma-separated emails allowed into `/admin`
@@ -186,3 +270,6 @@ Required environment variables — see [`.env.example`](./.env.example):
 ## 📄 License
 
 License TBD. Until a license is explicitly added to this repository, all rights are reserved by the author.
+=======
+MIT
+>>>>>>> Stashed changes

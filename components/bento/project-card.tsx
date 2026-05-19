@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { GlassCard } from '@/components/glass-card';
 import { Badge } from '@/components/ui/badge';
 import { pickLocale, type Project } from '@/lib/profile';

@@ -6,25 +6,10 @@ import { ExperienceCard } from './experience-card';
 import { HonorsCard } from './honors-card';
 import { TimelineCard } from './timeline-card';
 import { EducationCard } from './education-card';
-import { ResumeDownloadCard } from './resume-download-card';
-import {
-  getProfile,
-  getProjects,
-  getExperiences,
-  getHonors,
-  getEducation,
-  getTimeline,
-} from '@/lib/content';
+import { getHomeContent } from '@/lib/content';
 
 export async function BentoGrid({ locale }: { locale: Locale }) {
-  const [profile, projects, experiences, honors, education, timeline] = await Promise.all([
-    getProfile(),
-    getProjects(),
-    getExperiences(),
-    getHonors(),
-    getEducation(),
-    getTimeline(),
-  ]);
+  const { profile, projects, experiences, honors, education, timeline } = await getHomeContent();
 
   const projectCards = projects.slice(0, 3);
   const academicHero = projectCards.find((p) => p.kind === 'academic') ?? projectCards[0];
@@ -37,8 +22,24 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
       id="home"
       className="grid grid-cols-1 gap-4 py-4 md:grid-cols-6 md:gap-5 md:py-8"
     >
+<<<<<<< Updated upstream
       <ProfileHubCard profile={profile} locale={locale} className="md:col-span-4 md:row-span-2" />
       <AiChatCard className="md:col-span-2" />
+=======
+      {/* Row 1-2: Hero profile (8x2) + education card */}
+      <ProfileHubCard
+        profile={profile}
+        locale={locale}
+        className="md:col-span-8 md:row-span-2"
+      />
+      {primaryEducation && (
+        <EducationCard
+          education={primaryEducation}
+          locale={locale}
+          className="md:col-span-4 md:row-span-2"
+        />
+      )}
+>>>>>>> Stashed changes
 
       <ResumeDownloadCard locale={locale} className="md:col-span-1" />
       {primaryEducation && (

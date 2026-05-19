@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export function LoginForm({
   configured,
@@ -18,21 +17,17 @@ export function LoginForm({
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [busy, setBusy] = React.useState(false);
-  const [message, setMessage] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    if (error === 'forbidden') {
-      setMessage('该邮箱不在管理员白名单中。');
-    }
-  }, [error]);
+  const [message, setMessage] = React.useState<string | null>(
+    error === 'forbidden' ? '该邮箱不在管理员白名单中。' : null,
+  );
 
   if (!configured) {
     return (
       <div className="rounded-2xl border border-amber-300/40 bg-amber-100/30 p-4 text-xs text-amber-800 dark:text-amber-200">
-        Supabase 还未配置。请在 <code>.env.local</code> 中填写
+        Go 后端还未配置。请在 <code>.env.local</code> 中填写
         <br />
-        <code className="text-[11px]">NEXT_PUBLIC_SUPABASE_URL</code>、
-        <code className="text-[11px]">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>，并在 Supabase Dashboard 创建对应账号后再来。
+        <code className="text-[11px]">GO_API_URL</code>
+        与 <code className="text-[11px]">GO_API_INTERNAL_URL</code>，并启动 Go API 后再来。
       </div>
     );
   }
@@ -43,9 +38,15 @@ export function LoginForm({
     setBusy(true);
     setMessage(null);
     try {
-      const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(payload?.message || '登录失败');
+      }
       router.replace(redirectTo || '/admin');
       router.refresh();
     } catch (err: unknown) {

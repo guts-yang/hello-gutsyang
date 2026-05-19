@@ -46,3 +46,7 @@ next-env.d.ts
 
 # supabase
 .supabase
+
+# backend runtime data
+.backend-data/
+backend/.backend-data/

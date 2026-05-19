@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Fraunces, JetBrains_Mono } from 'next/font/google';
+import { Inter, Fraunces, JetBrains_Mono, Ma_Shan_Zheng } from 'next/font/google';
 import './globals.css';
 
 const fontSans = Inter({
@@ -21,6 +21,16 @@ const fontMono = JetBrains_Mono({
   display: 'swap',
 });
 
+// Ma Shan Zheng is a Chinese-only brush-script font; Google only exposes the
+// `latin` subset key, but next/font downloads the full unicode-range woff2
+// (including U+4E00–9FFF CJK Unified) so 廖晨扬 actually hits the brush face.
+const fontName = Ma_Shan_Zheng({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-name',
+  display: 'swap',
+});
+
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#fafafa' },
@@ -36,7 +46,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html suppressHydrationWarning className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable}`}>
+    <html suppressHydrationWarning className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} ${fontName.variable}`}>
       <body className="min-h-screen font-sans antialiased">{children}</body>
     </html>
   );

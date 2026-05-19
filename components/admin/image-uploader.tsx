@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { Upload, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { getMediaUploadUrl } from '@/app/admin/actions';
 
 /**
@@ -33,10 +32,13 @@ export function ImageUploader({
     try {
       const ext = file.name.split('.').pop() || 'png';
       const key = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { token, publicUrl } = await getMediaUploadUrl(key);
-      const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.storage.from('media').uploadToSignedUrl(key, token, file);
-      if (error) throw error;
+      const { uploadUrl, publicUrl } = await getMediaUploadUrl(key);
+      const response = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'content-type': file.type || 'application/octet-stream' },
+        body: file,
+      });
+      if (!response.ok) throw new Error('上传失败');
       setUrl(publicUrl);
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : '上传失败');

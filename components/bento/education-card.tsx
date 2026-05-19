@@ -1,3 +1,5 @@
+'use client';
+
 import { GraduationCap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { GlassCard } from '@/components/glass-card';

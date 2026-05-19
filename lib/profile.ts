@@ -1,7 +1,7 @@
 /**
- * Static profile data used to seed the homepage and feed the AI assistant.
- * In phase 3+, this is replaced/augmented by Supabase content. The shape
- * lives here so types stay stable across the transition.
+ * Static profile data used to seed the homepage and feed the Go backend demo
+ * store. The shape lives here so the frontend keeps stable DTOs even when the
+ * backend store is unavailable during local development.
  */
 
 export type Locale = 'zh' | 'en';
@@ -9,7 +9,7 @@ export type Locale = 'zh' | 'en';
 export type LocalizedString = Record<Locale, string>;
 
 export type SocialLink = {
-  type: 'github' | 'email' | 'wechat' | 'linkedin' | 'twitter';
+  type: 'github' | 'wechat' | 'linkedin' | 'twitter';
   href: string;
   label?: string;
 };
@@ -73,8 +73,12 @@ export const profile = {
     en: 'CS undergrad at South China University of Technology, researching LLM machine unlearning. I also build multi-agent systems, quant strategies, and full-stack apps.',
   } satisfies LocalizedString,
   socials: [
+<<<<<<< Updated upstream
     { type: 'github', href: 'https://github.com/chenyliao', label: '@chenyliao' },
     { type: 'email', href: 'mailto:hi@chenyliao.dev', label: 'hi@chenyliao.dev' },
+=======
+    { type: 'github', href: 'https://github.com/guts-yang', label: '@gutsyang' },
+>>>>>>> Stashed changes
     { type: 'wechat', href: '#wechat', label: 'WeChat QR' },
   ] satisfies SocialLink[],
 } as const;

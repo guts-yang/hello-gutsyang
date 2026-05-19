@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Briefcase } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import { GlassCard } from '@/components/glass-card';
 import { pickLocale, type Experience } from '@/lib/profile';
 import type { Locale } from '@/i18n';
@@ -18,8 +17,6 @@ export function ExperienceCard({
   locale: Locale;
   className?: string;
 }) {
-  const t = useTranslations('sections.experience');
-
   return (
     <Link
       href={`/${locale}/experience/${experience.slug}`}

@@ -9,8 +9,7 @@
     "projects": "项目",
     "experience": "经历",
     "blog": "博客",
-    "admin": "后台",
-    "downloadResume": "下载简历"
+    "admin": "后台"
   },
   "hero": {
     "greeting": "你好，我是",
@@ -62,7 +61,6 @@
   "social": {
     "github": "GitHub",
     "wechat": "微信",
-    "email": "Email",
     "wechatTip": "扫码加我为好友"
   },
   "footer": {

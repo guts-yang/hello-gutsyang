@@ -9,8 +9,7 @@
     "projects": "Projects",
     "experience": "Experience",
     "blog": "Blog",
-    "admin": "Admin",
-    "downloadResume": "Resume PDF"
+    "admin": "Admin"
   },
   "hero": {
     "greeting": "Hi, I'm",
@@ -62,7 +61,6 @@
   "social": {
     "github": "GitHub",
     "wechat": "WeChat",
-    "email": "Email",
     "wechatTip": "Scan to add me on WeChat"
   },
   "footer": {

@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderGit2, Briefcase, Award, User, LogOut, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, FolderGit2, Briefcase, Award, User, LogOut, ExternalLink, Settings, ScrollText } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
 const items = [
@@ -13,6 +12,8 @@ const items = [
   { href: '/admin/projects', label: 'Projects', icon: FolderGit2 },
   { href: '/admin/experiences', label: 'Experiences', icon: Briefcase },
   { href: '/admin/honors', label: 'Honors', icon: Award },
+  { href: '/admin/settings', label: '设置', icon: Settings },
+  { href: '/admin/audit', label: '审计', icon: ScrollText },
 ];
 
 export function AdminSidebar({ email }: { email: string }) {
@@ -20,8 +21,7 @@ export function AdminSidebar({ email }: { email: string }) {
   const router = useRouter();
 
   async function signOut() {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
+    await fetch('/api/admin/logout', { method: 'POST' });
     router.replace('/admin/login');
     router.refresh();
   }

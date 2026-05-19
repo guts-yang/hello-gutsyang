@@ -1,5 +1,4 @@
 import createMiddleware from 'next-intl/middleware';
-import { type CookieOptions, createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { defaultLocale, locales } from './i18n';
 
@@ -12,7 +11,6 @@ const intlMiddleware = createMiddleware({
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Pass through API and Next.js internals untouched.
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
@@ -22,8 +20,6 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Admin auth gate: require a Supabase session for everything under /admin
-  // except the login screen itself.
   if (pathname.startsWith('/admin')) {
     if (pathname === '/admin/login') return NextResponse.next();
     return await guardAdmin(req);
@@ -33,47 +29,51 @@ export default async function middleware(req: NextRequest) {
 }
 
 async function guardAdmin(req: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) {
-    // Without Supabase, the CMS isn't usable; bounce back to home.
-    return NextResponse.redirect(new URL('/admin/login', req.url));
+  const backendUrl = (process.env.GO_API_INTERNAL_URL || process.env.GO_API_URL || '').replace(/\/$/, '');
+  if (!backendUrl) {
+    return redirectToLogin(req);
   }
 
-  const res = NextResponse.next();
-  const supabase = createServerClient(url, anon, {
-    cookies: {
-      get(name: string) {
-        return req.cookies.get(name)?.value;
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        res.cookies.set({ name, value, ...options });
-      },
-      remove(name: string, options: CookieOptions) {
-        res.cookies.set({ name, value: '', ...options });
-      },
-    },
-  });
+  const cookieHeader = req.cookies
+    .getAll()
+    .map((entry) => `${entry.name}=${entry.value}`)
+    .join('; ');
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Hard cap session lookup so a hung backend cannot stall every admin
+  // request indefinitely. On timeout we treat the request as unauthenticated
+  // and redirect to the login page rather than rendering a broken admin shell.
+  let response: Response;
+  try {
+    response = await fetch(`${backendUrl}/v1/admin/session`, {
+      headers: {
+        cookie: cookieHeader,
+        accept: 'application/json',
+      },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(5_000),
+    });
+  } catch {
+    return redirectToLogin(req);
+  }
 
-  if (!user) {
-    const redirectUrl = new URL('/admin/login', req.url);
+  if (!response.ok) {
+    return redirectToLogin(req);
+  }
+
+  const session = (await response.json().catch(() => null)) as { authenticated?: boolean } | null;
+  if (!session?.authenticated) {
+    return redirectToLogin(req);
+  }
+
+  return NextResponse.next();
+}
+
+function redirectToLogin(req: NextRequest) {
+  const redirectUrl = new URL('/admin/login', req.url);
+  if (req.nextUrl.pathname !== '/admin/login') {
     redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
   }
-
-  const allowlist = (process.env.ADMIN_EMAIL_ALLOWLIST || '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  if (allowlist.length > 0 && (!user.email || !allowlist.includes(user.email.toLowerCase()))) {
-    return NextResponse.redirect(new URL('/admin/login?error=forbidden', req.url));
-  }
-
-  return res;
+  return NextResponse.redirect(redirectUrl);
 }
 
 export const config = {

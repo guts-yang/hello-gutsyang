@@ -3,12 +3,12 @@ import { Plus, Pencil } from 'lucide-react';
 import { GlassCard } from '@/components/glass-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { DbProjectRow } from '@/lib/supabase/types';
 import { DeleteButton } from '../delete-button';
 import { deleteProject } from '@/app/admin/actions';
+import { listProjectRows } from '@/lib/admin-api';
 
 export default async function AdminProjectsPage() {
+<<<<<<< Updated upstream
   const supabase = createSupabaseServerClient();
   const { data } = await supabase!
     .from('projects')
@@ -16,6 +16,9 @@ export default async function AdminProjectsPage() {
     .order('display_order', { ascending: false })
     .order('started_at', { ascending: false });
   const rows = (data ?? []) as DbProjectRow[];
+=======
+  const rows = await listProjectRows();
+>>>>>>> Stashed changes
 
   return (
     <div className="space-y-6">

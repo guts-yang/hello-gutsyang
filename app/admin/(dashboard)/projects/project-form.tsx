@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field, TextInput, TextArea, Switch } from '@/components/admin/form-fields';
 import { ImageUploader } from '@/components/admin/image-uploader';
 import { saveProject } from '@/app/admin/actions';
-import type { DbProjectRow } from '@/lib/supabase/types';
+import type { DbProjectRow } from '@/lib/api-types';
 
 type FormResult = { ok: boolean; message: string } | undefined;
 
@@ -22,7 +22,6 @@ function SubmitButton() {
 
 export function ProjectForm({ row }: { row?: DbProjectRow }) {
   const [state, formAction] = useFormState<FormResult, FormData>(saveProject as never, undefined);
-  const isEdit = Boolean(row);
 
   return (
     <form action={formAction} className="space-y-5">

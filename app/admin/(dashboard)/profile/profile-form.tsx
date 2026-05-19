@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Field, TextInput, TextArea } from '@/components/admin/form-fields';
 import { ImageUploader } from '@/components/admin/image-uploader';
 import { saveProfile } from '@/app/admin/actions';
-import type { DbProfileRow } from '@/lib/supabase/types';
+import type { DbProfileRow } from '@/lib/api-types';
 
 type FormResult = { ok: boolean; message: string } | undefined;
 
@@ -59,7 +59,7 @@ export function ProfileForm({ row }: { row: DbProfileRow | null }) {
           <Field
             label="Socials JSON"
             className="sm:col-span-2"
-            hint='[{"type":"github","href":"https://...","label":"@me"}, ...]'
+            hint='[{"type":"github","href":"https://..."},{"type":"wechat","href":"#wechat"}]'
           >
             <TextArea
               name="socials"

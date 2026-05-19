@@ -113,6 +113,19 @@
     letter-spacing: -0.04em;
     line-height: 0.95;
   }
+
+  /*
+   * Applied to the Chinese owner name on the home hero. Brush script needs
+   * looser tracking (negative letter-spacing collapses the strokes) and a
+   * slightly taller line so the diagonal flicks do not get clipped by the
+   * gradient text-clip box.
+   */
+  .name-art {
+    font-family: var(--font-name), 'Ma Shan Zheng', serif;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    line-height: 1.05;
+  }
 }
 
 @layer utilities {

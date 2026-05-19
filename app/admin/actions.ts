@@ -3,7 +3,21 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import {
+  experienceRowToPayload,
+  honorRowToPayload,
+  profileRowToPayload,
+  projectRowToPayload,
+  requireAdminSession,
+} from '@/lib/admin-api';
+import type {
+  DbExperienceRow,
+  DbHonorRow,
+  DbProfileRow,
+  DbProjectRow,
+  SocialJson,
+} from '@/lib/api-types';
+import { fetchBackend } from '@/lib/backend';
 
 function readFormString(fd: FormData, key: string, fallback = ''): string {
   const v = fd.get(key);
@@ -25,12 +39,17 @@ function readFormJson<T = unknown>(fd: FormData, key: string, fallback: T): T {
   }
 }
 
+<<<<<<< Updated upstream
 async function requireAdmin() {
   const supabase = createSupabaseServerClient();
   if (!supabase) throw new Error('Supabase is not configured.');
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/admin/login');
   return supabase;
+=======
+async function assertAdminSession() {
+  await requireAdminSession();
+>>>>>>> Stashed changes
 }
 
 function revalidateAll() {
@@ -57,8 +76,16 @@ const ProfileSchema = z.object({
   avatar_url: z.string().nullable().optional(),
 });
 
+const SocialsSchema = z.array(
+  z.object({
+    type: z.enum(['github', 'wechat', 'linkedin', 'twitter']),
+    href: z.string().min(1),
+    label: z.string().optional(),
+  }),
+);
+
 export async function saveProfile(_: unknown, fd: FormData) {
-  const supabase = await requireAdmin();
+  await assertAdminSession();
   const data = ProfileSchema.parse({
     name_zh: readFormString(fd, 'name_zh'),
     name_en: readFormString(fd, 'name_en'),
@@ -71,12 +98,33 @@ export async function saveProfile(_: unknown, fd: FormData) {
     bio_en: readFormString(fd, 'bio_en'),
     avatar_url: readFormString(fd, 'avatar_url') || null,
   });
-  const socials = readFormJson(fd, 'socials', [] as unknown[]);
-
-  const { error } = await supabase
-    .from('profile')
-    .upsert({ id: 'main', ...data, socials });
-  if (error) return { ok: false as const, message: error.message };
+  let socials: SocialJson[];
+  try {
+    socials = SocialsSchema.parse(readFormJson(fd, 'socials', []));
+  } catch {
+    return { ok: false as const, message: 'Socials JSON 格式无效，仅支持 github / wechat / linkedin / twitter' };
+  }
+  const row: DbProfileRow = {
+    id: 'main',
+    ...data,
+    avatar_url: data.avatar_url ?? null,
+    socials,
+    updated_at: new Date().toISOString(),
+  };
+  const payload = profileRowToPayload(row);
+  const response = await fetchBackend(
+    '/v1/admin/profile',
+    {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+    { auth: true, revalidate: false },
+  );
+  if (!response.ok) {
+    const text = await response.text().catch(() => '保存失败');
+    return { ok: false as const, message: text };
+  }
   revalidateAll();
   return { ok: true as const, message: '已保存' };
 }
@@ -104,7 +152,7 @@ const ProjectSchema = z.object({
 });
 
 export async function saveProject(_: unknown, fd: FormData) {
-  const supabase = await requireAdmin();
+  await assertAdminSession();
   const id = readFormString(fd, 'id') || null;
   const data = ProjectSchema.parse({
     slug: readFormString(fd, 'slug'),
@@ -128,21 +176,43 @@ export async function saveProject(_: unknown, fd: FormData) {
     .map((t) => t.trim())
     .filter(Boolean);
   const highlights = readFormJson(fd, 'highlights', [] as unknown[]);
-
-  const payload = { ...data, tags, highlights };
-  const { error } = id
-    ? await supabase.from('projects').update(payload).eq('id', id)
-    : await supabase.from('projects').insert(payload);
-  if (error) return { ok: false as const, message: error.message };
+  const row: DbProjectRow = {
+    id: id ?? '',
+    ...data,
+    link: data.link ?? null,
+    repo: data.repo ?? null,
+    cover_url: data.cover_url ?? null,
+    ended_at: data.ended_at ?? null,
+    tags,
+    highlights: highlights as DbProjectRow['highlights'],
+  };
+  const payload = projectRowToPayload(row);
+  const response = await fetchBackend(
+    id ? `/v1/admin/projects/${id}` : '/v1/admin/projects',
+    {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+    { auth: true, revalidate: false },
+  );
+  if (!response.ok) {
+    const text = await response.text().catch(() => '保存失败');
+    return { ok: false as const, message: text };
+  }
 
   revalidateAll();
   redirect('/admin/projects');
 }
 
 export async function deleteProject(id: string) {
-  const supabase = await requireAdmin();
-  const { error } = await supabase.from('projects').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  await assertAdminSession();
+  const response = await fetchBackend(
+    `/v1/admin/projects/${id}`,
+    { method: 'DELETE' },
+    { auth: true, revalidate: false },
+  );
+  if (!response.ok) throw new Error(await response.text());
   revalidateAll();
 }
 
@@ -166,7 +236,7 @@ const ExperienceSchema = z.object({
 });
 
 export async function saveExperience(_: unknown, fd: FormData) {
-  const supabase = await requireAdmin();
+  await assertAdminSession();
   const id = readFormString(fd, 'id') || null;
   const data = ExperienceSchema.parse({
     slug: readFormString(fd, 'slug'),
@@ -183,21 +253,40 @@ export async function saveExperience(_: unknown, fd: FormData) {
     is_published: readFormBool(fd, 'is_published'),
   });
   const metrics = readFormJson(fd, 'metrics', [] as unknown[]);
-
-  const payload = { ...data, metrics };
-  const { error } = id
-    ? await supabase.from('experiences').update(payload).eq('id', id)
-    : await supabase.from('experiences').insert(payload);
-  if (error) return { ok: false as const, message: error.message };
+  const row: DbExperienceRow = {
+    id: id ?? '',
+    ...data,
+    link: data.link ?? null,
+    ended_at: data.ended_at ?? null,
+    metrics: metrics as DbExperienceRow['metrics'],
+  };
+  const payload = experienceRowToPayload(row);
+  const response = await fetchBackend(
+    id ? `/v1/admin/experiences/${id}` : '/v1/admin/experiences',
+    {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+    { auth: true, revalidate: false },
+  );
+  if (!response.ok) {
+    const text = await response.text().catch(() => '保存失败');
+    return { ok: false as const, message: text };
+  }
 
   revalidateAll();
   redirect('/admin/experiences');
 }
 
 export async function deleteExperience(id: string) {
-  const supabase = await requireAdmin();
-  const { error } = await supabase.from('experiences').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  await assertAdminSession();
+  const response = await fetchBackend(
+    `/v1/admin/experiences/${id}`,
+    { method: 'DELETE' },
+    { auth: true, revalidate: false },
+  );
+  if (!response.ok) throw new Error(await response.text());
   revalidateAll();
 }
 
@@ -216,7 +305,7 @@ const HonorSchema = z.object({
 });
 
 export async function saveHonor(_: unknown, fd: FormData) {
-  const supabase = await requireAdmin();
+  await assertAdminSession();
   const id = readFormString(fd, 'id') || null;
   const data = HonorSchema.parse({
     pillar: readFormString(fd, 'pillar') as 'morality' | 'wisdom' | 'athletics' | 'labor',
@@ -228,19 +317,36 @@ export async function saveHonor(_: unknown, fd: FormData) {
     is_published: readFormBool(fd, 'is_published'),
   });
 
-  const { error } = id
-    ? await supabase.from('honors').update(data).eq('id', id)
-    : await supabase.from('honors').insert(data);
-  if (error) return { ok: false as const, message: error.message };
+  const payload = honorRowToPayload({
+    id: id ?? '',
+    ...data,
+  } satisfies DbHonorRow);
+  const response = await fetchBackend(
+    id ? `/v1/admin/honors/${id}` : '/v1/admin/honors',
+    {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+    { auth: true, revalidate: false },
+  );
+  if (!response.ok) {
+    const text = await response.text().catch(() => '保存失败');
+    return { ok: false as const, message: text };
+  }
 
   revalidateAll();
   redirect('/admin/honors');
 }
 
 export async function deleteHonor(id: string) {
-  const supabase = await requireAdmin();
-  const { error } = await supabase.from('honors').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  await assertAdminSession();
+  const response = await fetchBackend(
+    `/v1/admin/honors/${id}`,
+    { method: 'DELETE' },
+    { auth: true, revalidate: false },
+  );
+  if (!response.ok) throw new Error(await response.text());
   revalidateAll();
 }
 
@@ -250,9 +356,19 @@ export async function deleteHonor(id: string) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function getMediaUploadUrl(path: string) {
-  const supabase = await requireAdmin();
-  const { data, error } = await supabase.storage.from('media').createSignedUploadUrl(path);
-  if (error) throw new Error(error.message);
-  const publicUrl = supabase.storage.from('media').getPublicUrl(path).data.publicUrl;
-  return { ...data, publicUrl };
+  await assertAdminSession();
+  const parts = path.split('/');
+  const fileName = parts.pop() || path;
+  const folder = parts.join('/') || 'projects';
+  const response = await fetchBackend(
+    '/v1/admin/media/upload-url',
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ fileName, folder }),
+    },
+    { auth: true, revalidate: false },
+  );
+  if (!response.ok) throw new Error(await response.text());
+  return (await response.json()) as { uploadUrl: string; publicUrl: string };
 }

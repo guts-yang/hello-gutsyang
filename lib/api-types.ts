@@ -1,15 +1,9 @@
-/**
- * Hand-written types matching the schema in supabase/migrations/0001_init.sql.
- * Replace by `supabase gen types typescript` once the project is linked.
- */
-
 export type Json = string | number | boolean | null | { [k: string]: Json } | Json[];
 
 export type LocalizedJson = { zh: string; en: string };
 
 export type SocialJson =
   | { type: 'github'; href: string; label?: string }
-  | { type: 'email'; href: string; label?: string }
   | { type: 'wechat'; href: string; label?: string }
   | { type: 'linkedin'; href: string; label?: string }
   | { type: 'twitter'; href: string; label?: string };
@@ -49,8 +43,8 @@ export type DbProjectRow = {
   ended_at: string | null;
   display_order: number;
   is_published: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type DbExperienceRow = {
@@ -68,8 +62,8 @@ export type DbExperienceRow = {
   ended_at: string | null;
   display_order: number;
   is_published: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type DbHonorRow = {
@@ -104,4 +98,27 @@ export type DbTimelineRow = {
   title_en: string;
   body_zh: string;
   body_en: string;
+};
+
+export type AdminSession = {
+  authenticated: boolean;
+  user?: {
+    email: string;
+    role: string;
+  };
+};
+
+export type AdminSessionListItem = {
+  id: string;
+  ip?: string;
+  userAgent?: string;
+  createdAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+  current: boolean;
+};
+
+export type MediaUploadTicket = {
+  uploadUrl: string;
+  publicUrl: string;
 };

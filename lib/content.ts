@@ -1,5 +1,5 @@
 import 'server-only';
-import { createSupabaseAnonClient } from '@/lib/supabase/server';
+import { fetchBackendJson } from '@/lib/backend';
 import {
   profile as staticProfile,
   projects as staticProjects,
@@ -13,21 +13,7 @@ import {
   type Education,
   type LocalizedString,
 } from '@/lib/profile';
-import type {
-  DbExperienceRow,
-  DbHonorRow,
-  DbEducationRow,
-  DbProfileRow,
-  DbProjectRow,
-  DbTimelineRow,
-  SocialJson,
-} from '@/lib/supabase/types';
-
-/**
- * Content reader: tries Supabase first; falls back to the static seed in
- * lib/profile.ts when the project isn't yet wired up. This keeps `npm run dev`
- * working out-of-the-box and lets the CMS replace data over time.
- */
+import type { SocialJson } from '@/lib/api-types';
 
 export type ProfileBundle = {
   nameZh: string;
@@ -49,79 +35,6 @@ export type TimelineEvent = {
 
 const REVALIDATE_SECONDS = 60;
 
-function fromProjectRow(row: DbProjectRow): Project {
-  return {
-    slug: row.slug,
-    kind: row.kind,
-    title: { zh: row.title_zh, en: row.title_en },
-    tagline: { zh: row.tagline_zh, en: row.tagline_en },
-    summary: { zh: row.summary_zh, en: row.summary_en },
-    tags: row.tags ?? [],
-    highlights: row.highlights ?? [],
-    link: row.link ?? undefined,
-    repo: row.repo ?? undefined,
-    cover: row.cover_url ?? undefined,
-    startedAt: row.started_at,
-    endedAt: row.ended_at ?? undefined,
-  };
-}
-
-function fromExperienceRow(row: DbExperienceRow): Experience {
-  return {
-    slug: row.slug,
-    org: { zh: row.org_zh, en: row.org_en },
-    role: { zh: row.role_zh, en: row.role_en },
-    summary: { zh: row.summary_zh, en: row.summary_en },
-    metrics: row.metrics ?? [],
-    startedAt: row.started_at,
-    endedAt: row.ended_at ?? undefined,
-    link: row.link ?? undefined,
-  };
-}
-
-function fromHonorRow(row: DbHonorRow): Honor {
-  return {
-    pillar: row.pillar,
-    title: { zh: row.title_zh, en: row.title_en },
-    story: { zh: row.story_zh, en: row.story_en },
-  };
-}
-
-function fromEducationRow(row: DbEducationRow): Education {
-  return {
-    school: { zh: row.school_zh, en: row.school_en },
-    degree: { zh: row.degree_zh, en: row.degree_en },
-    startedAt: row.started_at,
-    endedAt: row.ended_at ?? undefined,
-    notes:
-      row.notes_zh || row.notes_en
-        ? { zh: row.notes_zh ?? '', en: row.notes_en ?? '' }
-        : undefined,
-  };
-}
-
-function fromTimelineRow(row: DbTimelineRow): TimelineEvent {
-  return {
-    date: row.date,
-    kind: row.kind,
-    title: { zh: row.title_zh, en: row.title_en },
-    body: { zh: row.body_zh, en: row.body_en },
-  };
-}
-
-function fromProfileRow(row: DbProfileRow): ProfileBundle {
-  return {
-    nameZh: row.name_zh,
-    nameEn: row.name_en,
-    handle: row.handle,
-    role: { zh: row.role_zh, en: row.role_en },
-    slogan: { zh: row.slogan_zh, en: row.slogan_en },
-    bio: { zh: row.bio_zh, en: row.bio_en },
-    avatarUrl: row.avatar_url ?? undefined,
-    socials: row.socials ?? [],
-  };
-}
-
 const staticProfileBundle: ProfileBundle = {
   nameZh: staticProfile.nameZh,
   nameEn: staticProfile.nameEn,
@@ -132,29 +45,173 @@ const staticProfileBundle: ProfileBundle = {
   socials: staticProfile.socials as unknown as SocialJson[],
 };
 
+type BackendLocalized = { zh: string; en: string };
+type BackendProfile = {
+  nameZh: string;
+  nameEn: string;
+  handle: string;
+  role: BackendLocalized;
+  slogan: BackendLocalized;
+  bio: BackendLocalized;
+  avatarUrl?: string;
+  socials: SocialJson[];
+};
+type BackendProject = {
+  slug: string;
+  kind: 'academic' | 'engineering';
+  title: BackendLocalized;
+  tagline: BackendLocalized;
+  summary: BackendLocalized;
+  tags: string[];
+  highlights: BackendLocalized[];
+  link?: string;
+  repo?: string;
+  coverUrl?: string;
+  startedAt: string;
+  endedAt?: string;
+};
+type BackendExperience = {
+  slug: string;
+  org: BackendLocalized;
+  role: BackendLocalized;
+  summary: BackendLocalized;
+  metrics: BackendLocalized[];
+  startedAt: string;
+  endedAt?: string;
+  link?: string;
+};
+type BackendHonor = {
+  pillar: 'morality' | 'wisdom' | 'athletics' | 'labor';
+  title: BackendLocalized;
+  story: BackendLocalized;
+};
+type BackendEducation = {
+  school: BackendLocalized;
+  degree: BackendLocalized;
+  startedAt: string;
+  endedAt?: string;
+  notes?: BackendLocalized;
+};
+type BackendTimeline = {
+  date: string;
+  kind: 'edu' | 'work' | 'project' | 'honor';
+  title: BackendLocalized;
+  body: BackendLocalized;
+};
+type BackendHome = {
+  profile: BackendProfile;
+  projects: BackendProject[];
+  experiences: BackendExperience[];
+  honors: BackendHonor[];
+  education: BackendEducation[];
+  timeline: BackendTimeline[];
+};
+
+function fromBackendProject(project: BackendProject): Project {
+  return {
+    slug: project.slug,
+    kind: project.kind,
+    title: project.title,
+    tagline: project.tagline,
+    summary: project.summary,
+    tags: project.tags ?? [],
+    highlights: project.highlights ?? [],
+    link: project.link,
+    repo: project.repo,
+    cover: project.coverUrl,
+    startedAt: project.startedAt,
+    endedAt: project.endedAt,
+  };
+}
+
+function fromBackendExperience(experience: BackendExperience): Experience {
+  return {
+    slug: experience.slug,
+    org: experience.org,
+    role: experience.role,
+    summary: experience.summary,
+    metrics: experience.metrics ?? [],
+    startedAt: experience.startedAt,
+    endedAt: experience.endedAt,
+    link: experience.link,
+  };
+}
+
+function fromBackendHonor(honor: BackendHonor): Honor {
+  return {
+    pillar: honor.pillar,
+    title: honor.title,
+    story: honor.story,
+  };
+}
+
+function fromBackendEducation(education: BackendEducation): Education {
+  return {
+    school: education.school,
+    degree: education.degree,
+    startedAt: education.startedAt,
+    endedAt: education.endedAt,
+    notes: education.notes,
+  };
+}
+
+function fromBackendTimeline(event: BackendTimeline): TimelineEvent {
+  return {
+    date: event.date,
+    kind: event.kind,
+    title: event.title,
+    body: event.body,
+  };
+}
+
+function fromBackendProfile(profile: BackendProfile): ProfileBundle {
+  return {
+    nameZh: profile.nameZh,
+    nameEn: profile.nameEn,
+    handle: profile.handle,
+    role: profile.role,
+    slogan: profile.slogan,
+    bio: profile.bio,
+    avatarUrl: profile.avatarUrl,
+    socials: profile.socials ?? [],
+  };
+}
+
+async function getHomeSnapshot() {
+  try {
+    const payload = await fetchBackendJson<BackendHome>('/v1/public/home', {}, { revalidate: REVALIDATE_SECONDS });
+    return {
+      profile: fromBackendProfile(payload.profile),
+      projects: payload.projects.map(fromBackendProject),
+      experiences: payload.experiences.map(fromBackendExperience),
+      honors: payload.honors.map(fromBackendHonor),
+      education: payload.education.map(fromBackendEducation),
+      timeline: payload.timeline.map(fromBackendTimeline),
+    };
+  } catch {
+    return {
+      profile: staticProfileBundle,
+      projects: staticProjects,
+      experiences: staticExperiences,
+      honors: staticHonors,
+      education: staticEducation,
+      timeline: staticTimeline,
+    };
+  }
+}
+
+export async function getHomeContent() {
+  return getHomeSnapshot();
+}
+
 export async function getProfile(): Promise<ProfileBundle> {
-  const sb = createSupabaseAnonClient();
-  if (!sb) return staticProfileBundle;
-  const { data, error } = await sb
-    .from('profile')
-    .select('*')
-    .eq('id', 'main')
-    .maybeSingle();
-  if (error || !data) return staticProfileBundle;
-  return fromProfileRow(data as DbProfileRow);
+  const snapshot = await getHomeSnapshot();
+  return snapshot.profile;
 }
 
 export async function getProjects(): Promise<Project[]> {
-  const sb = createSupabaseAnonClient();
-  if (!sb) return staticProjects;
-  const { data, error } = await sb
-    .from('projects')
-    .select('*')
-    .eq('is_published', true)
-    .order('display_order', { ascending: false })
-    .order('started_at', { ascending: false });
-  if (error || !data || data.length === 0) return staticProjects;
-  return (data as DbProjectRow[]).map(fromProjectRow);
+  const snapshot = await getHomeSnapshot();
+  return snapshot.projects;
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | undefined> {
@@ -163,16 +220,8 @@ export async function getProjectBySlug(slug: string): Promise<Project | undefine
 }
 
 export async function getExperiences(): Promise<Experience[]> {
-  const sb = createSupabaseAnonClient();
-  if (!sb) return staticExperiences;
-  const { data, error } = await sb
-    .from('experiences')
-    .select('*')
-    .eq('is_published', true)
-    .order('display_order', { ascending: false })
-    .order('started_at', { ascending: false });
-  if (error || !data || data.length === 0) return staticExperiences;
-  return (data as DbExperienceRow[]).map(fromExperienceRow);
+  const snapshot = await getHomeSnapshot();
+  return snapshot.experiences;
 }
 
 export async function getExperienceBySlug(slug: string): Promise<Experience | undefined> {
@@ -181,34 +230,18 @@ export async function getExperienceBySlug(slug: string): Promise<Experience | un
 }
 
 export async function getHonors(): Promise<Honor[]> {
-  const sb = createSupabaseAnonClient();
-  if (!sb) return staticHonors;
-  const { data, error } = await sb
-    .from('honors')
-    .select('*')
-    .eq('is_published', true)
-    .order('display_order', { ascending: false });
-  if (error || !data || data.length === 0) return staticHonors;
-  return (data as DbHonorRow[]).map(fromHonorRow);
+  const snapshot = await getHomeSnapshot();
+  return snapshot.honors;
 }
 
 export async function getEducation(): Promise<Education[]> {
-  const sb = createSupabaseAnonClient();
-  if (!sb) return staticEducation;
-  const { data, error } = await sb
-    .from('education')
-    .select('*')
-    .order('display_order', { ascending: false });
-  if (error || !data || data.length === 0) return staticEducation;
-  return (data as DbEducationRow[]).map(fromEducationRow);
+  const snapshot = await getHomeSnapshot();
+  return snapshot.education;
 }
 
 export async function getTimeline(): Promise<TimelineEvent[]> {
-  const sb = createSupabaseAnonClient();
-  if (!sb) return staticTimeline;
-  const { data, error } = await sb.from('timeline').select('*').order('date', { ascending: true });
-  if (error || !data || data.length === 0) return staticTimeline;
-  return (data as DbTimelineRow[]).map(fromTimelineRow);
+  const snapshot = await getHomeSnapshot();
+  return snapshot.timeline;
 }
 
 export const contentRevalidate = REVALIDATE_SECONDS;

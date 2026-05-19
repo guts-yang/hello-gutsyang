@@ -5,7 +5,7 @@ import { GlassCard } from '@/components/glass-card';
 import { Button } from '@/components/ui/button';
 import { Field, TextInput, TextArea, Switch } from '@/components/admin/form-fields';
 import { saveExperience } from '@/app/admin/actions';
-import type { DbExperienceRow } from '@/lib/supabase/types';
+import type { DbExperienceRow } from '@/lib/api-types';
 
 type FormResult = { ok: boolean; message: string } | undefined;
 
