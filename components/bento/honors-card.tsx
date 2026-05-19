@@ -28,7 +28,7 @@ export function HonorsCard({
   const t = useTranslations('sections.honors');
 
   return (
-    <GlassCard className={cn('h-full', className)}>
+    <GlassCard density="cozy" className={cn('h-full', className)}>
       <div className="flex h-full flex-col gap-4">
         <div>
           <h3 className="display-headline text-2xl">{t('title')}</h3>
@@ -46,18 +46,34 @@ export function HonorsCard({
 
 function HonorTile({ honor, locale, label }: { honor: Honor; locale: Locale; label: string }) {
   const [flipped, setFlipped] = React.useState(false);
+  const [hasFinePointer, setHasFinePointer] = React.useState(false);
   const Icon = iconFor[honor.pillar];
+
+  React.useEffect(() => {
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const update = () => setHasFinePointer(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  const hoverProps = hasFinePointer
+    ? {
+        onMouseEnter: () => setFlipped(true),
+        onMouseLeave: () => setFlipped(false),
+        onFocus: () => setFlipped(true),
+        onBlur: () => setFlipped(false),
+      }
+    : {};
 
   return (
     <button
       type="button"
-      onMouseEnter={() => setFlipped(true)}
-      onMouseLeave={() => setFlipped(false)}
-      onFocus={() => setFlipped(true)}
-      onBlur={() => setFlipped(false)}
+      {...hoverProps}
       onClick={() => setFlipped((v) => !v)}
-      className="group relative h-32 perspective-[800px] focus:outline-none"
+      className="group relative h-28 sm:h-32 perspective-[800px] focus:outline-none"
       aria-label={pickLocale(honor.title, locale)}
+      aria-pressed={flipped}
     >
       <motion.div
         animate={{ rotateY: flipped ? 180 : 0 }}
@@ -78,7 +94,7 @@ function HonorTile({ honor, locale, label }: { honor: Honor; locale: Locale; lab
           </div>
         </div>
         <div
-          className="absolute inset-0 flex items-center rounded-2xl border border-white/40 dark:border-white/10 bg-[hsl(var(--primary)/0.12)] p-3 text-left text-xs text-foreground/90"
+          className="absolute inset-0 flex items-center rounded-2xl border border-white/40 dark:border-white/10 bg-[hsl(var(--primary)/0.12)] p-3 text-left text-[11px] leading-snug text-foreground/90 sm:text-xs"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
           {pickLocale(honor.story, locale)}

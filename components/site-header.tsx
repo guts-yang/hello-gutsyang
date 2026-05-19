@@ -2,10 +2,9 @@
 
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { Download } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { LocaleToggle } from './locale-toggle';
-import { Button } from './ui/button';
+import { AiPlugin } from './chat/ai-plugin';
 
 export function SiteHeader() {
   const t = useTranslations('nav');
@@ -20,11 +19,11 @@ export function SiteHeader() {
   ];
 
   return (
-    <header className="sticky top-4 z-40 mx-auto w-full max-w-6xl px-4 sm:px-6">
-      <div className="glass-strong flex items-center justify-between gap-3 rounded-full px-4 py-2 sm:px-5">
-        <Link href={base} className="flex items-center gap-2">
+    <header className="sticky top-4 z-40 mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-10 xl:px-12">
+      <div className="glass-strong flex items-center justify-between gap-3 rounded-full px-3 py-2 sm:px-5">
+        <Link href={base} className="flex items-center gap-2 pl-1">
           <span className="display-headline text-lg font-semibold tracking-tight text-gradient">
-            chenyliao
+            gutsyang
           </span>
         </Link>
         <nav className="hidden items-center gap-1 md:flex">
@@ -39,14 +38,9 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <AiPlugin />
           <LocaleToggle />
           <ThemeToggle />
-          <Button asChild size="sm" variant="gradient" className="hidden sm:inline-flex">
-            <a href={`/api/resume.pdf?lang=${locale}`} target="_blank" rel="noopener noreferrer">
-              <Download className="h-3.5 w-3.5" />
-              {t('downloadResume')}
-            </a>
-          </Button>
         </div>
       </div>
     </header>

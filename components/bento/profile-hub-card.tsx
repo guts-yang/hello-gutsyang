@@ -63,6 +63,7 @@ export function ProfileHubCard({
   }, [wechatOpen]);
 
   return (
+<<<<<<< HEAD
 <<<<<<< Updated upstream
     <GlassCard className={cn('group', className)}>
       <div className="flex h-full flex-col justify-between gap-6">
@@ -85,10 +86,18 @@ export function ProfileHubCard({
         >
           <div className="space-y-3 lg:space-y-4">
 >>>>>>> Stashed changes
+=======
+    <GlassCard density="comfy" className={cn('group', className)}>
+      <div className="flex h-full flex-col justify-between gap-6 lg:gap-10">
+        {/* Top row: badge + greeting + name (huge) on the left, avatar on the right */}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
+          <div className="space-y-3 lg:space-y-4">
+>>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
             <Badge tone="accent" className="uppercase tracking-[0.2em]">
               {locale === 'zh' ? '可被招聘' : 'Open to roles'}
             </Badge>
             <p className="text-sm text-muted-foreground">{t('hero.greeting')}</p>
+<<<<<<< HEAD
 <<<<<<< Updated upstream
             <h1 className="display-headline text-5xl sm:text-6xl md:text-7xl">
 =======
@@ -103,9 +112,15 @@ export function ProfileHubCard({
               style={{ fontSize: 'clamp(3rem, 8.5vw, 8rem)', lineHeight: 0.95 }}
             >
 >>>>>>> Stashed changes
+=======
+            <h1
+              className="display-headline text-foreground"
+              style={{ fontSize: 'clamp(3rem, 8.5vw, 8rem)', lineHeight: 0.95 }}
+            >
+>>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
               <span className="text-gradient">{displayName}</span>
             </h1>
-            <p className="text-base font-medium text-foreground sm:text-lg">
+            <p className="text-base font-medium text-foreground/85 sm:text-lg lg:text-xl">
               {pickLocale(profile.role, locale)}
             </p>
           </div>
@@ -114,10 +129,11 @@ export function ProfileHubCard({
             initial={{ scale: 0.92, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="relative hidden h-24 w-24 shrink-0 sm:block"
+            className="relative hidden h-28 w-28 shrink-0 sm:block lg:h-36 lg:w-36"
           >
 <<<<<<< Updated upstream
             <div className="absolute -inset-1.5 rounded-full bg-[conic-gradient(from_0deg,hsl(var(--aurora-1)),hsl(var(--aurora-2)),hsl(var(--aurora-3)),hsl(var(--aurora-4)),hsl(var(--aurora-1)))] blur-md opacity-80 animate-aurora-drift" />
+<<<<<<< HEAD
             <div className="relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md text-3xl font-bold text-gradient">
 =======
             <motion.div
@@ -127,6 +143,9 @@ export function ProfileHubCard({
             />
             <div className="relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-white/70 text-3xl font-bold text-gradient backdrop-blur-md dark:bg-zinc-900/70 lg:text-5xl">
 >>>>>>> Stashed changes
+=======
+            <div className="relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md text-3xl font-bold text-gradient lg:text-5xl">
+>>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
               {profile.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={profile.avatarUrl} alt={displayName} className="h-full w-full object-cover" />
@@ -137,11 +156,21 @@ export function ProfileHubCard({
           </motion.div>
         </motion.div>
 
-        <p className="max-w-xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
-          {pickLocale(profile.slogan, locale)} ·{' '}
-          <span className="text-foreground/80">{pickLocale(profile.bio, locale)}</span>
-        </p>
+        {/* Bottom: two-column layout — narrative on the left, socials on the right */}
+        <div className="grid gap-5 sm:grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              {locale === 'zh' ? '关于' : 'About'}
+            </p>
+            <p className="text-pretty text-base leading-relaxed text-foreground/90 sm:text-lg lg:text-xl">
+              {pickLocale(profile.slogan, locale)}
+            </p>
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+              {pickLocale(profile.bio, locale)}
+            </p>
+          </div>
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
         <div className="flex flex-wrap items-center gap-2">
           {profile.socials.map((s) => {
@@ -167,6 +196,38 @@ export function ProfileHubCard({
               </a>
             );
           })}
+=======
+          <div className="flex flex-col gap-3 lg:items-end lg:text-right">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              {locale === 'zh' ? '联系' : 'Reach out'}
+            </p>
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              {profile.socials.map((s) => {
+                const Icon = iconFor[s.type];
+                const isWechat = s.type === 'wechat';
+                const onClick = isWechat
+                  ? (e: React.MouseEvent) => {
+                      e.preventDefault();
+                      setWechatOpen((v) => !v);
+                    }
+                  : undefined;
+                return (
+                  <a
+                    key={s.type}
+                    href={s.href}
+                    onClick={onClick}
+                    target={isWechat ? undefined : '_blank'}
+                    rel="noopener noreferrer"
+                    className="group/social inline-flex items-center gap-2 rounded-full border border-white/40 dark:border-white/10 bg-white/40 dark:bg-white/5 px-3.5 py-1.5 text-xs font-medium backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/60 dark:hover:bg-white/10"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span>{t(`social.${s.type}` as 'social.github' | 'social.email' | 'social.wechat')}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+>>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
         </div>
 
         {wechatOpen && (

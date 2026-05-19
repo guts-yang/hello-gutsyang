@@ -1,6 +1,5 @@
 import type { Locale } from '@/i18n';
 import { ProfileHubCard } from './profile-hub-card';
-import { AiChatCard } from './ai-chat-card';
 import { ProjectCard } from './project-card';
 import { ExperienceCard } from './experience-card';
 import { HonorsCard } from './honors-card';
@@ -17,21 +16,28 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
   const primaryExperience = experiences[0];
   const primaryEducation = education[0];
 
+  // 12-col grid on md+, single column on mobile. `auto-rows-fr` keeps each row's
+  // cards aligned so col-span/row-span produce a clean magazine mosaic.
   return (
     <section
       id="home"
-      className="grid grid-cols-1 gap-4 py-4 md:grid-cols-6 md:gap-5 md:py-8"
+      className="grid grid-cols-1 gap-4 py-4 md:grid-cols-12 md:gap-5 md:py-8 lg:gap-6 md:auto-rows-[minmax(180px,auto)]"
     >
+<<<<<<< HEAD
 <<<<<<< Updated upstream
       <ProfileHubCard profile={profile} locale={locale} className="md:col-span-4 md:row-span-2" />
       <AiChatCard className="md:col-span-2" />
 =======
       {/* Row 1-2: Hero profile (8x2) + education card */}
+=======
+      {/* Row 1-2: Hero profile (8x2) + right stack: Education on top, Resume PDF below */}
+>>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
       <ProfileHubCard
         profile={profile}
         locale={locale}
         className="md:col-span-8 md:row-span-2"
       />
+<<<<<<< HEAD
       {primaryEducation && (
         <EducationCard
           education={primaryEducation}
@@ -42,50 +48,79 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
 >>>>>>> Stashed changes
 
       <ResumeDownloadCard locale={locale} className="md:col-span-1" />
+=======
+>>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
       {primaryEducation && (
-        <EducationCard education={primaryEducation} locale={locale} className="md:col-span-1" />
+        <EducationCard
+          education={primaryEducation}
+          locale={locale}
+          className="md:col-span-4"
+        />
       )}
+      <ResumeDownloadCard locale={locale} className="md:col-span-4" />
 
-      <div id="projects" className="md:col-span-6 mt-6 flex items-end justify-between">
-        <h2 className="display-headline text-3xl sm:text-4xl text-gradient">
-          {locale === 'zh' ? '硬核项目矩阵' : 'Project Matrix'}
-        </h2>
-        <p className="hidden text-sm text-muted-foreground sm:block">
-          {locale === 'zh' ? '学术研究 · 工程落地' : 'Research · Engineering'}
-        </p>
-      </div>
+      {/* Section: Projects */}
+      <SectionHeader
+        id="projects"
+        title={locale === 'zh' ? '硬核项目矩阵' : 'Project Matrix'}
+        subtitle={locale === 'zh' ? '学术研究 · 工程落地' : 'Research · Engineering'}
+      />
 
       {academicHero && (
         <ProjectCard
           project={academicHero}
           locale={locale}
-          className="md:col-span-4 md:row-span-2"
+          className="md:col-span-8 md:row-span-2"
         />
       )}
       {sideProjects.map((p) => (
-        <ProjectCard key={p.slug} project={p} locale={locale} className="md:col-span-2" />
+        <ProjectCard key={p.slug} project={p} locale={locale} className="md:col-span-4" />
       ))}
 
-      <div id="experience" className="md:col-span-6 mt-6 flex items-end justify-between">
-        <h2 className="display-headline text-3xl sm:text-4xl text-gradient">
-          {locale === 'zh' ? '工作与实践' : 'Work & Practice'}
-        </h2>
-      </div>
+      {/* Section: Experience + Honors */}
+      <SectionHeader
+        id="experience"
+        title={locale === 'zh' ? '工作与实践' : 'Work & Practice'}
+        subtitle={locale === 'zh' ? '在真实场景中验证想法' : 'Validating ideas in real environments'}
+      />
       {primaryExperience && (
         <ExperienceCard
           experience={primaryExperience}
           locale={locale}
-          className="md:col-span-3"
+          className="md:col-span-7"
         />
       )}
-      <HonorsCard honors={honors} locale={locale} className="md:col-span-3" />
+      <HonorsCard honors={honors} locale={locale} className="md:col-span-5" />
 
-      <div id="timeline" className="md:col-span-6 mt-6">
-        <h2 className="display-headline text-3xl sm:text-4xl text-gradient">
-          {locale === 'zh' ? '成长时间轴' : 'Growth Timeline'}
-        </h2>
-      </div>
-      <TimelineCard events={timeline} locale={locale} className="md:col-span-6" />
+      {/* Section: Timeline */}
+      <SectionHeader
+        id="timeline"
+        title={locale === 'zh' ? '成长时间轴' : 'Growth Timeline'}
+        subtitle={locale === 'zh' ? '从课堂到赛场到实验室' : 'Classroom → competition → lab'}
+      />
+      <TimelineCard events={timeline} locale={locale} className="md:col-span-12" />
     </section>
+  );
+}
+
+function SectionHeader({
+  id,
+  title,
+  subtitle,
+}: {
+  id: string;
+  title: string;
+  subtitle?: string;
+}) {
+  return (
+    <div
+      id={id}
+      className="mt-8 flex items-end justify-between gap-4 md:col-span-12 md:mt-10"
+    >
+      <h2 className="display-headline text-3xl text-gradient sm:text-4xl md:text-5xl">{title}</h2>
+      {subtitle && (
+        <p className="hidden text-sm text-muted-foreground sm:block">{subtitle}</p>
+      )}
+    </div>
   );
 }

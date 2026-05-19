@@ -8,7 +8,7 @@ import {
   getEducation,
 } from '@/lib/content';
 import type { Locale } from '@/i18n';
-import { Fragment, type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, color: '#1f2937' },
   hero: { marginBottom: 16 },
   name: { fontSize: 24, fontWeight: 700, color: '#0f172a' },
-  role: { fontSize: 11, color: '#6d28d9', marginTop: 2 },
+  role: { fontSize: 11, color: '#0f62fe', marginTop: 2 },
   bio: { fontSize: 9.5, color: '#374151', marginTop: 6, lineHeight: 1.4 },
   contactRow: { flexDirection: 'row', gap: 10, marginTop: 8, flexWrap: 'wrap' },
   contact: { fontSize: 9, color: '#374151' },
@@ -40,8 +40,8 @@ const styles = StyleSheet.create({
   tags: { marginTop: 4, flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   tag: {
     fontSize: 8,
-    color: '#6d28d9',
-    backgroundColor: '#ede9fe',
+    color: '#0f62fe',
+    backgroundColor: '#e8f3ff',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 3,
@@ -170,15 +170,13 @@ export async function GET(req: NextRequest) {
           </View>
         ))}
 
-        <Fragment>
-          <Text
-            style={styles.footer}
-            render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-              `${name} · ${pageNumber} / ${totalPages}`
-            }
-            fixed
-          />
-        </Fragment>
+        <Text
+          style={styles.footer}
+          render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
+            `${name} · ${pageNumber} / ${totalPages}`
+          }
+          fixed
+        />
       </Page>
     </Document>
   );
@@ -191,7 +189,7 @@ export async function GET(req: NextRequest) {
   const body = Buffer.concat(chunks);
 
   const filename = `${name}-Resume-${lang}.pdf`;
-  return new Response(body, {
+  return new Response(new Uint8Array(body), {
     headers: {
       'content-type': 'application/pdf',
       'content-disposition': `inline; filename*=UTF-8''${encodeURIComponent(filename)}`,

@@ -15,6 +15,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 1,
     });
+<<<<<<< HEAD
+=======
+    urls.push({
+      url: `${base}/${locale}/chat`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    });
+>>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
     for (const p of projects) {
       urls.push({
         url: `${base}/${locale}/projects/${p.slug}`,

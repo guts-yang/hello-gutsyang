@@ -33,15 +33,15 @@ const fontName = Ma_Shan_Zheng({
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a14' },
+    { media: '(prefers-color-scheme: light)', color: '#f3f9ff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0b1220' },
   ],
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: 'Chenyliao',
-  description: 'Personal site of Chenyliao.',
+  title: 'gutsyang',
+  description: 'Personal site of gutsyang.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,11 +1,17 @@
 # Personal Site Template
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 # hello-chenyliao
 
 **廖晨扬 / chenyliao (Tony) 的个人主页 · Personal Site**
 =======
 一个开箱即用的**个人主页全栈模板**。
+=======
+# hello-gutsyang
+
+**廖晨扬 / gutsyang (Tony) 的个人主页 · Personal Site**
+>>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
 
 - 前端：`Next.js` 负责页面、路由、国际化
 - 后端：`Go API` 负责内容管理、登录、媒体上传、AI 对话、PDF 导出
@@ -38,7 +44,7 @@ flowchart LR
 
 ### 项目简介
 
-`hello-chenyliao` 是一个为「单人作者 + 多场景展示」设计的现代个人主页：
+`hello-gutsyang` 是一个为「单人作者 + 多场景展示」设计的现代个人主页：
 
 - **前台**：基于 Bento Grid 的首页 + 经历、项目、荣誉详情页，支持中英双语切换
 - **后台**：`/admin` 内置轻量 CMS，可在线管理 profile / experiences / honors / projects，无需直接改数据库
@@ -155,7 +161,7 @@ npm run dev:frontend  # Next.js  → :3000
 
 <<<<<<< Updated upstream
 ```
-hello-chenyliao/
+hello-gutsyang/
 ├── app/
 │   ├── [locale]/          # 双语前台（zh / en）
 │   ├── admin/             # CMS 后台 + 登录页（中间件鉴权）
@@ -203,11 +209,15 @@ hello-chenyliao/
 - **审计**：登录、改密、改邮箱、踢会话、CMS 增删改写入 `admin_audit`，前端在 `/admin/audit` 可视化
 - **运维**：忘记密码用 `go run ./cmd/api reset-password admin@example.com`，改邮箱用 `set-email`，重启即生效
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 `hello-chenyliao` is a modern personal site designed for a "single-author, multi-surface" portfolio:
 =======
 ## 默认安全与稳定性
 >>>>>>> Stashed changes
+=======
+`hello-gutsyang` is a modern personal site designed for a "single-author, multi-surface" portfolio:
+>>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
 
 - 管理员密码：bcrypt 存储，明文 bootstrap 启动即丢弃
 - CORS：白名单匹配，不回显任意 Origin
@@ -263,9 +273,9 @@ hello-chenyliao/
 
 ## 👤 Author
 
-- **Name** — 廖晨扬 / Tony Liao
-- **Handle** — [@chenyliao](https://github.com/guts-yang) (GitHub: `guts-yang`)
-- **Repo** — <https://github.com/guts-yang/hello-chenyliao>
+- **Name** — 廖晨扬 / gutsyang (Tony)
+- **Handle** — [@gutsyang](https://github.com/guts-yang) (GitHub: `guts-yang`)
+- **Repo** — <https://github.com/guts-yang/hello-gutsyang>
 
 ## 📄 License
 
