@@ -8,7 +8,7 @@ type BackendFetchOptions = {
   /**
    * Maximum time to wait for the upstream response in milliseconds.
    * Defaults to 8 seconds; pass `false` to opt out (used for streaming routes
-   * like SSE chat or long-running PDF generation).
+   * like SSE chat).
    */
   timeoutMs?: number | false;
 };

@@ -30,7 +30,6 @@ type Config struct {
 
 	RateLimitLogin RateLimitConfig
 	RateLimitChat  RateLimitConfig
-	RateLimitPDF   RateLimitConfig
 
 	LoginLockout LockoutConfig
 }
@@ -111,10 +110,6 @@ func Load() Config {
 		RateLimitChat: RateLimitConfig{
 			Burst:  getEnvInt("RATE_LIMIT_CHAT_BURST", 5),
 			Window: getEnvDuration("RATE_LIMIT_CHAT_WINDOW", 30*time.Second),
-		},
-		RateLimitPDF: RateLimitConfig{
-			Burst:  getEnvInt("RATE_LIMIT_PDF_BURST", 10),
-			Window: getEnvDuration("RATE_LIMIT_PDF_WINDOW", 5*time.Minute),
 		},
 
 		LoginLockout: LockoutConfig{

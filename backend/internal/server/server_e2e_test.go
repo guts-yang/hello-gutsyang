@@ -54,7 +54,6 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 		MediaMaxUploadBytes: 4 * 1024 * 1024,
 		RateLimitLogin:      config.RateLimitConfig{Burst: 1000, Window: time.Minute},
 		RateLimitChat:       config.RateLimitConfig{Burst: 1000, Window: time.Minute},
-		RateLimitPDF:        config.RateLimitConfig{Burst: 1000, Window: time.Minute},
 		LoginLockout: config.LockoutConfig{
 			Threshold: 3,
 			Window:    time.Minute,

@@ -1338,8 +1338,8 @@ func Run(ctx context.Context, cfg config.Config) error {
 		Handler:           srv.Handler(),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
-		// Keep WriteTimeout generous to accommodate long PDF renders and SSE
-		// streams; per-handler deadlines should narrow it further when needed.
+		// Keep WriteTimeout generous to accommodate long SSE streams;
+		// per-handler deadlines should narrow it further when needed.
 		WriteTimeout: 5 * time.Minute,
 		IdleTimeout:  2 * time.Minute,
 	}

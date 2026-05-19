@@ -5,7 +5,6 @@ import { ExperienceCard } from './experience-card';
 import { HonorsCard } from './honors-card';
 import { TimelineCard } from './timeline-card';
 import { EducationCard } from './education-card';
-import { ResumeDownloadCard } from './resume-download-card';
 import { getHomeContent } from '@/lib/content';
 
 export async function BentoGrid({ locale }: { locale: Locale }) {
@@ -37,8 +36,6 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
           className="md:col-span-4 md:row-span-2"
         />
       )}
-
-      <ResumeDownloadCard locale={locale} className="md:col-span-12" />
 
       {/* Section: Projects */}
       <SectionHeader

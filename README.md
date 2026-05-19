@@ -3,7 +3,7 @@
 一个开箱即用的**个人主页全栈模板**。
 
 - 前端：`Next.js` 负责页面、路由、国际化
-- 后端：`Go API` 负责内容管理、登录、媒体上传、AI 对话、PDF 导出
+- 后端：`Go API` 负责内容管理、登录、媒体上传、AI 对话
 - 数据：内容默认走本地文件快照；管理员鉴权（用户、会话、登录失败、审计）落 Postgres，开发默认 in-memory 兜底
 
 ## 架构
@@ -20,7 +20,7 @@ flowchart LR
 ```
 
 - `app/`：Next.js 前端 + 极薄的 API 代理（只负责把请求转给 Go）
-- `backend/`：Go 后端，含 `auth` / `content` / `media` / `ai` / `pdf` / `ratelimit`
+- `backend/`：Go 后端，含 `auth` / `content` / `media` / `ai` / `ratelimit`
 - `lib/`：前端访问后端的工具层、共享 DTO、静态回退数据
 
 ## 技术栈
@@ -37,7 +37,6 @@ flowchart LR
 | 限流 | 按 IP 令牌桶 + 按邮箱/IP 慢路径锁定 |
 | 媒体上传 | 预签发 URL + 路径穿越防御 + MIME / 大小限制 |
 | AI | DeepSeek Chat API（Go 端代理，支持流式） |
-| PDF | Go 端生成简历 PDF |
 
 ## 本地启动
 
@@ -132,9 +131,9 @@ npm run dev:frontend  # Next.js  → :3000
 
 **Admin**：`/v1/admin/login` `/logout` `/session` `/password` `/email` `/sessions` `/audit` `/profile` `/projects` `/experiences` `/honors` `/media/upload-url`
 
-**慢路径**：`POST /v1/ai/chat`、`GET /v1/pdf/resume?lang=zh|en`
+**慢路径**：`POST /v1/ai/chat`
 
-> 登录 / AI / PDF 三处默认带 IP 限流。
+> 登录 / AI 两处默认带 IP 限流。
 
 ## 管理员鉴权
 
@@ -152,7 +151,7 @@ npm run dev:frontend  # Next.js  → :3000
 - HTTP 超时：`ReadHeader=5s` / `Read=15s` / `Write=5min` / `Idle=2min`
 - 媒体上传：路径穿越防御 + 大小上限 + MIME 白名单 + 过期 ticket 自动回收
 - 错误响应：5xx 统一稳定 message，堆栈仅入日志
-- Next → Go：默认 8s 超时；admin middleware 5s；chat / pdf 代理 60s
+- Next → Go：默认 8s 超时；admin middleware 5s；chat 代理 60s
 
 ## 上线核对（必做）
 
