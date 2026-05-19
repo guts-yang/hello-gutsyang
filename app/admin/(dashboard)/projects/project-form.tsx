@@ -5,6 +5,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { GlassCard } from '@/components/glass-card';
 import { Button } from '@/components/ui/button';
 import { Field, TextInput, TextArea, Switch } from '@/components/admin/form-fields';
+import { RepeatableFieldGroup, type LocalizedRow } from '@/components/admin/repeatable-field-group';
 import { ImageUploader } from '@/components/admin/image-uploader';
 import { saveProject } from '@/app/admin/actions';
 import type { DbProjectRow } from '@/lib/api-types';
@@ -22,6 +23,9 @@ function SubmitButton() {
 
 export function ProjectForm({ row }: { row?: DbProjectRow }) {
   const [state, formAction] = useFormState<FormResult, FormData>(saveProject as never, undefined);
+  const [highlights, setHighlights] = React.useState<LocalizedRow[]>(
+    () => (row?.highlights as LocalizedRow[]) ?? [],
+  );
 
   return (
     <form action={formAction} className="space-y-5">
@@ -62,13 +66,14 @@ export function ProjectForm({ row }: { row?: DbProjectRow }) {
           <Field label="标签（用逗号分隔）" className="sm:col-span-2" hint="如：LLM, PyTorch, NeurIPS">
             <TextInput name="tags" defaultValue={row?.tags?.join(', ') ?? ''} />
           </Field>
-          <Field label="Highlights JSON" className="sm:col-span-2" hint='[{"zh":"...", "en":"..."}, ...]'>
-            <TextArea
+          <div className="sm:col-span-2">
+            <RepeatableFieldGroup
               name="highlights"
-              defaultValue={JSON.stringify(row?.highlights ?? [], null, 2)}
-              rows={5}
+              label="亮点 Highlights"
+              rows={highlights}
+              onChange={setHighlights}
             />
-          </Field>
+          </div>
           <Field label="Repo URL">
             <TextInput name="repo" type="url" defaultValue={row?.repo ?? ''} />
           </Field>

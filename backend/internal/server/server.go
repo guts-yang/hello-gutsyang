@@ -70,16 +70,19 @@ func (s *Server) Close() {
 }
 
 func New(ctx context.Context, cfg config.Config) (*Server, error) {
-	contentSvc, err := content.NewService(cfg.DataDir)
-	if err != nil {
-		return nil, err
-	}
-	mediaSvc, err := media.NewService(ctx, cfg.DataDir, cfg.PublicBaseURL)
+	authSvc, pool, err := buildAuthService(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	authSvc, pool, err := buildAuthService(ctx, cfg)
+	contentSvc, err := content.NewService(cfg.DataDir, pool)
+	if err != nil {
+		if pool != nil {
+			pool.Close()
+		}
+		return nil, err
+	}
+	mediaSvc, err := media.NewService(ctx, cfg.DataDir, cfg.PublicBaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -225,6 +228,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("DELETE /v1/admin/sessions/{id}", s.handleAdminRevokeSession)
 	mux.HandleFunc("POST /v1/admin/sessions/revoke-all", s.handleAdminRevokeAllOtherSessions)
 	mux.HandleFunc("GET /v1/admin/audit", s.handleAdminAuditList)
+	mux.HandleFunc("GET /v1/admin/stats", s.handleAdminStats)
 	mux.HandleFunc("GET /v1/admin/profile", s.handleAdminProfileGet)
 	mux.HandleFunc("PUT /v1/admin/profile", s.handleAdminProfilePut)
 	mux.HandleFunc("GET /v1/admin/projects", s.handleAdminProjects)
@@ -785,6 +789,18 @@ func optionalUser(s *model.Session) *model.User {
 	}
 	user := s.User
 	return &user
+}
+
+func (s *Server) handleAdminStats(w http.ResponseWriter, r *http.Request) {
+	if _, ok := s.requireAdmin(w, r); !ok {
+		return
+	}
+	stats, err := s.content.Stats(r.Context())
+	if err != nil {
+		writeServerError(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, stats)
 }
 
 func (s *Server) handleAdminProfileGet(w http.ResponseWriter, r *http.Request) {

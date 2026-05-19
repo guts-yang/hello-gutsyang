@@ -31,6 +31,9 @@ func main() {
 		case "set-email":
 			runSetEmailCommand(os.Args[2:])
 			return
+		case "content":
+			runContentCommand(os.Args[2:])
+			return
 		case "help", "-h", "--help":
 			printHelp()
 			return
@@ -225,4 +228,6 @@ func printHelp() {
 	fmt.Println("  api migrate status           list applied / pending migrations")
 	fmt.Println("  api reset-password <email> <newPassword>")
 	fmt.Println("  api set-email <oldEmail> <newEmail>")
+	fmt.Println("  api content import [path]       import content.json into Postgres")
+	fmt.Println("  api content export [path]       export Postgres CMS to content.json")
 }

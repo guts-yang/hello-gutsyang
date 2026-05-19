@@ -1,30 +1,32 @@
 import Link from 'next/link';
-import { Plus, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { GlassCard } from '@/components/glass-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AdminListShell } from '@/components/admin/admin-list-shell';
 import { DeleteButton } from '../delete-button';
 import { deleteProject } from '@/app/admin/actions';
 import { listProjectRows } from '@/lib/admin-api';
 
-export default async function AdminProjectsPage() {
+export default async function AdminProjectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string }>;
+}) {
+  const { saved } = await searchParams;
   const rows = await listProjectRows();
 
   return (
-    <div className="space-y-6">
-      <header className="flex items-end justify-between">
-        <div>
-          <h1 className="display-headline text-3xl text-gradient">Projects</h1>
-          <p className="text-sm text-muted-foreground">{rows.length} 条记录</p>
-        </div>
-        <Button asChild variant="gradient" size="sm">
-          <Link href="/admin/projects/new">
-            <Plus className="h-4 w-4" />
-            新建
-          </Link>
-        </Button>
-      </header>
-
+    <AdminListShell
+      title="Projects"
+      count={rows.length}
+      newHref="/admin/projects/new"
+      newLabel="新建"
+      saved={saved === '1'}
+      emptyMessage="还没有项目，创建第一条吧。"
+      emptyCtaHref="/admin/projects/new"
+      emptyCtaLabel="新建项目"
+    >
       <div className="grid gap-3">
         {rows.map((row) => (
           <GlassCard key={row.id}>
@@ -54,6 +56,6 @@ export default async function AdminProjectsPage() {
           </GlassCard>
         ))}
       </div>
-    </div>
+    </AdminListShell>
   );
 }

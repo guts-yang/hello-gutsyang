@@ -19,6 +19,10 @@ var ErrUserNotFound = errors.New("auth: user not found")
 // ErrSessionNotFound is returned by SessionRepo when no row matches.
 var ErrSessionNotFound = errors.New("auth: session not found")
 
+// ErrCombinedLookupUnsupported means the SessionRepo cannot load session+user
+// in one query; the service falls back to ByToken + ByID.
+var ErrCombinedLookupUnsupported = errors.New("auth: combined session lookup unsupported")
+
 // ErrEmailTaken is returned by UpdateEmail when the new email already exists
 // on another user. With a single-admin deployment this is mostly a guard
 // against typos rather than a real conflict.
@@ -41,6 +45,8 @@ type UserRepo interface {
 type SessionRepo interface {
 	Create(ctx context.Context, s SessionRecord) error
 	ByToken(ctx context.Context, token string) (*SessionRecord, error)
+	// ByTokenWithUser loads session + user in one round-trip when supported.
+	ByTokenWithUser(ctx context.Context, token string) (*SessionRecord, *UserRecord, error)
 	Touch(ctx context.Context, token string, newExpiry time.Time, lastSeen time.Time) error
 	Delete(ctx context.Context, token string) error
 	DeleteByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
@@ -164,6 +170,10 @@ func (r *memorySessionRepo) ByToken(_ context.Context, token string) (*SessionRe
 		return nil, ErrSessionNotFound
 	}
 	return &s, nil
+}
+
+func (r *memorySessionRepo) ByTokenWithUser(ctx context.Context, token string) (*SessionRecord, *UserRecord, error) {
+	return nil, nil, ErrCombinedLookupUnsupported
 }
 
 func (r *memorySessionRepo) Touch(_ context.Context, token string, newExpiry, lastSeen time.Time) error {

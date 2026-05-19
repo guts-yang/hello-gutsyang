@@ -108,6 +108,12 @@ export type AdminSession = {
   };
 };
 
+export type AdminContentStats = {
+  projects: number;
+  experiences: number;
+  honors: number;
+};
+
 export type AdminSessionListItem = {
   id: string;
   ip?: string;

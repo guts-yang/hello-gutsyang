@@ -22,8 +22,18 @@ export async function POST() {
       cache: 'no-store',
       signal: AbortSignal.timeout(8_000),
     });
-  } catch {
-    return Response.json({ ok: false, message: '后端无响应，请稍后再试' }, { status: 504 });
+  } catch (err: unknown) {
+    console.error('[admin/logout] upstream failed:', err);
+    return Response.json(
+      {
+        ok: false,
+        message:
+          process.env.NODE_ENV === 'development'
+            ? '无法连接 Go API，请确认 npm run dev:backend 正在运行。'
+            : '后端无响应，请稍后再试',
+      },
+      { status: 504 },
+    );
   }
 
   const headers = new Headers({

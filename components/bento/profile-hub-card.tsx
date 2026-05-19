@@ -1,9 +1,10 @@
 ﻿'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
-import { Github, MessageCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Github, MessageCircle, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { GlassCard } from '@/components/glass-card';
 import { Badge } from '@/components/ui/badge';
 import { pickLocale } from '@/lib/profile';
@@ -37,31 +38,37 @@ export function ProfileHubCard({
 }) {
   const t = useTranslations();
   const [wechatOpen, setWechatOpen] = React.useState(false);
-  const wechatRootRef = React.useRef<HTMLDivElement>(null);
   const displayName = locale === 'zh' ? profile.nameZh : profile.nameEn;
   const initials = profile.handle.slice(0, 2).toUpperCase();
 
   const visibleSocials = profile.socials.filter((s) => isVisibleSocial(s.type));
 
+  // Close on Escape and lock the background scroll while the modal is open so
+  // users on small screens cannot accidentally scroll the page underneath the
+  // dialog while trying to long-press the QR.
   React.useEffect(() => {
     if (!wechatOpen) return;
 
-    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
-      const target = event.target as Node;
-      if (wechatRootRef.current?.contains(target)) return;
-      setWechatOpen(false);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setWechatOpen(false);
     };
+    document.addEventListener('keydown', handleKeyDown);
 
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('touchstart', handlePointerDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
     };
   }, [wechatOpen]);
 
+  const wechatLabel = t('social.wechat');
+  const wechatTip = t('social.wechatTip');
+
   return (
-    <GlassCard density="comfy" className={cn('group', className)}>
+    <>
+      <GlassCard density="comfy" className={cn('group', className)}>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -153,45 +160,21 @@ export function ProfileHubCard({
 
                 if (isWechat) {
                   return (
-                    <motion.div
+                    <motion.button
                       key={s.type}
-                      ref={wechatRootRef}
+                      type="button"
+                      onClick={() => setWechatOpen((open) => !open)}
+                      aria-expanded={wechatOpen}
+                      aria-haspopup="dialog"
                       variants={{
                         hidden: { opacity: 0, y: 6 },
                         show: { opacity: 1, y: 0 },
                       }}
-                      className="relative"
+                      className="group/social inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/40 px-3.5 py-1.5 text-xs font-medium backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/60 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                     >
-                      <button
-                        type="button"
-                        onClick={() => setWechatOpen((open) => !open)}
-                        aria-expanded={wechatOpen}
-                        aria-haspopup="dialog"
-                        className="group/social inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/40 px-3.5 py-1.5 text-xs font-medium backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/60 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
-                      >
-                        <Icon className="h-3.5 w-3.5" />
-                        <span>{label}</span>
-                      </button>
-                      {wechatOpen && (
-                        <motion.div
-                          role="dialog"
-                          aria-label={label}
-                          initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          className="glass-strong absolute right-0 top-full z-20 mt-2 flex flex-col items-center gap-2 rounded-2xl p-4 shadow-lg"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={WECHAT_QR_SRC}
-                            alt={t('social.wechatTip')}
-                            width={128}
-                            height={128}
-                            className="h-32 w-32 rounded-xl object-cover"
-                          />
-                          <p className="text-xs text-muted-foreground">{t('social.wechatTip')}</p>
-                        </motion.div>
-                      )}
-                    </motion.div>
+                      <Icon className="h-3.5 w-3.5" />
+                      <span>{label}</span>
+                    </motion.button>
                   );
                 }
 
@@ -216,6 +199,58 @@ export function ProfileHubCard({
           </motion.div>
         </div>
       </motion.div>
-    </GlassCard>
+      </GlassCard>
+
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {wechatOpen && (
+              <motion.div
+                key="wechat-backdrop"
+                role="dialog"
+                aria-modal="true"
+                aria-label={wechatLabel}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                onClick={() => setWechatOpen(false)}
+                className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+              >
+                <motion.div
+                  initial={{ scale: 0.92, opacity: 0, y: 8 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.94, opacity: 0, y: 6 }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                  onClick={(event) => event.stopPropagation()}
+                  className="glass-strong relative flex flex-col items-center gap-3 rounded-3xl p-6 shadow-2xl"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setWechatOpen(false)}
+                    aria-label={locale === 'zh' ? '关闭' : 'Close'}
+                    className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full border border-white/40 bg-white/60 text-foreground/70 transition hover:bg-white/80 dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/20"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={WECHAT_QR_SRC}
+                    alt={wechatTip}
+                    width={224}
+                    height={224}
+                    // object-contain (not cover) — a QR code must never be
+                    // cropped or it stops scanning. White background ensures
+                    // contrast on dark theme.
+                    className="h-56 w-56 rounded-2xl bg-white object-contain p-2"
+                  />
+                  <p className="max-w-[14rem] text-center text-sm text-muted-foreground">{wechatTip}</p>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
+    </>
   );
 }

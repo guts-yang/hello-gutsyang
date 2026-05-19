@@ -28,40 +28,15 @@ export default async function middleware(req: NextRequest) {
   return intlMiddleware(req);
 }
 
+function adminSessionCookieName() {
+  return process.env.ADMIN_SESSION_COOKIE || 'hello_gutsyang_admin_session';
+}
+
 async function guardAdmin(req: NextRequest) {
-  const backendUrl = (process.env.GO_API_INTERNAL_URL || process.env.GO_API_URL || '').replace(/\/$/, '');
-  if (!backendUrl) {
-    return redirectToLogin(req);
-  }
-
-  const cookieHeader = req.cookies
-    .getAll()
-    .map((entry) => `${entry.name}=${entry.value}`)
-    .join('; ');
-
-  // Hard cap session lookup so a hung backend cannot stall every admin
-  // request indefinitely. On timeout we treat the request as unauthenticated
-  // and redirect to the login page rather than rendering a broken admin shell.
-  let response: Response;
-  try {
-    response = await fetch(`${backendUrl}/v1/admin/session`, {
-      headers: {
-        cookie: cookieHeader,
-        accept: 'application/json',
-      },
-      cache: 'no-store',
-      signal: AbortSignal.timeout(5_000),
-    });
-  } catch {
-    return redirectToLogin(req);
-  }
-
-  if (!response.ok) {
-    return redirectToLogin(req);
-  }
-
-  const session = (await response.json().catch(() => null)) as { authenticated?: boolean } | null;
-  if (!session?.authenticated) {
+  // Fast path: presence of the session cookie only. The dashboard layout performs
+  // the authoritative Go API session check once per navigation.
+  const sessionCookie = adminSessionCookieName();
+  if (!req.cookies.get(sessionCookie)?.value) {
     return redirectToLogin(req);
   }
 

@@ -1,31 +1,11 @@
 import Link from 'next/link';
 import { GlassCard } from '@/components/glass-card';
-import { listAdminAudit, requireAdminSession } from '@/lib/admin-api';
+import { listAdminAudit } from '@/lib/admin-api';
 import type { AdminAuditItem } from '@/lib/admin-api';
+import { AuditFilter } from './audit-filter';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-const KNOWN_ACTIONS = [
-  'login.success',
-  'login.failure',
-  'login.locked',
-  'logout',
-  'password.change',
-  'email.change',
-  'session.revoke',
-  'session.revoke_all',
-  'profile.update',
-  'project.create',
-  'project.update',
-  'project.delete',
-  'experience.create',
-  'experience.update',
-  'experience.delete',
-  'honor.create',
-  'honor.update',
-  'honor.delete',
-];
 
 function actionTone(action: string) {
   if (action.startsWith('login.failure') || action.startsWith('login.locked')) {
@@ -47,7 +27,6 @@ export default async function AdminAuditPage({
 }: {
   searchParams: Promise<{ action?: string; before?: string }>;
 }) {
-  await requireAdminSession();
   const params = await searchParams;
   const action = params.action ?? '';
   const before = params.before ?? '';
@@ -77,26 +56,7 @@ export default async function AdminAuditPage({
             按时间倒序展示管理员登录、内容修改、会话变更等动作。
           </p>
         </div>
-        <form className="flex items-center gap-2" action="/admin/audit">
-          <select
-            name="action"
-            defaultValue={action}
-            className="h-10 rounded-2xl border border-white/40 bg-white/40 px-3 text-sm dark:border-white/10 dark:bg-white/5"
-          >
-            <option value="">所有动作</option>
-            {KNOWN_ACTIONS.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-sm text-[hsl(var(--primary-foreground))]"
-          >
-            筛选
-          </button>
-        </form>
+        <AuditFilter action={action} />
       </div>
 
       <GlassCard density="compact">

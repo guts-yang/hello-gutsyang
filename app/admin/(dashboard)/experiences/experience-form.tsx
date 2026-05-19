@@ -1,9 +1,11 @@
 'use client';
 
+import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { GlassCard } from '@/components/glass-card';
 import { Button } from '@/components/ui/button';
 import { Field, TextInput, TextArea, Switch } from '@/components/admin/form-fields';
+import { RepeatableFieldGroup, type LocalizedRow } from '@/components/admin/repeatable-field-group';
 import { saveExperience } from '@/app/admin/actions';
 import type { DbExperienceRow } from '@/lib/api-types';
 
@@ -20,6 +22,7 @@ function SubmitButton() {
 
 export function ExperienceForm({ row }: { row?: DbExperienceRow }) {
   const [state, formAction] = useFormState<FormResult, FormData>(saveExperience as never, undefined);
+  const [metrics, setMetrics] = React.useState<LocalizedRow[]>(() => (row?.metrics as LocalizedRow[]) ?? []);
 
   return (
     <form action={formAction} className="space-y-5">
@@ -50,13 +53,9 @@ export function ExperienceForm({ row }: { row?: DbExperienceRow }) {
           <Field label="Summary (English)" className="sm:col-span-2">
             <TextArea name="summary_en" defaultValue={row?.summary_en} rows={4} />
           </Field>
-          <Field label="量化指标 JSON" className="sm:col-span-2" hint='[{"zh":"...", "en":"..."}, ...]'>
-            <TextArea
-              name="metrics"
-              defaultValue={JSON.stringify(row?.metrics ?? [], null, 2)}
-              rows={5}
-            />
-          </Field>
+          <div className="sm:col-span-2">
+            <RepeatableFieldGroup name="metrics" label="量化指标 Metrics" rows={metrics} onChange={setMetrics} />
+          </div>
           <Field label="开始日期">
             <TextInput type="date" name="started_at" defaultValue={row?.started_at?.slice(0, 10)} required />
           </Field>

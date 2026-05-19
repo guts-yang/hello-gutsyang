@@ -1,6 +1,7 @@
 import 'server-only';
 
 import type {
+  AdminContentStats,
   AdminSession,
   AdminSessionListItem,
   DbExperienceRow,
@@ -71,6 +72,10 @@ type HonorPayload = {
 
 export async function getAdminSession() {
   return fetchBackendJson<AdminSession>('/v1/admin/session', {}, { auth: true, revalidate: false });
+}
+
+export async function getAdminStats() {
+  return fetchBackendJson<AdminContentStats>('/v1/admin/stats', {}, { auth: true, revalidate: false });
 }
 
 // requireAdminSession is the shared guard used by RSC layouts and server

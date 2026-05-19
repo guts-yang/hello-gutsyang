@@ -30,7 +30,10 @@ export default async function AdminHonorsPage() {
           <GlassCard key={row.id}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
-                <Badge tone="accent">{row.pillar}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge tone="accent">{row.pillar}</Badge>
+                  {!row.is_published && <Badge tone="muted">draft</Badge>}
+                </div>
                 <p className="mt-1 truncate text-base font-medium">{row.title_zh}</p>
                 <p className="line-clamp-2 text-xs text-muted-foreground">{row.story_zh}</p>
               </div>
