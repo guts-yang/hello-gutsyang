@@ -66,7 +66,13 @@
     "trigger": "Ask AI",
     "panelTitle": "AI 助手",
     "panelHint": "用自然语言问关于我的一切",
-    "close": "关闭"
+    "close": "关闭",
+    "history": "历史会话",
+    "newChat": "新会话",
+    "empty": "暂无会话",
+    "delete": "删除",
+    "confirmDelete": "确认删除这条会话？",
+    "untitled": "新会话"
   },
   "footer": {
     "made": "用 Next.js 与 Tailwind 手工编写",

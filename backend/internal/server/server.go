@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io"
 	"log"
 	"net"
 	"net/http"
@@ -28,16 +27,18 @@ import (
 )
 
 type Server struct {
-	cfg            config.Config
-	content        *content.Service
-	auth           *auth.Service
-	audit          *audit.Service
-	media          *media.Service
-	ai             *ai.Service
-	cache          *cache.Cache
-	allowedOrigins map[string]struct{}
-	loginLimiter   ratelimit.Limiter
-	chatLimiter    ratelimit.Limiter
+	cfg             config.Config
+	content         *content.Service
+	auth            *auth.Service
+	audit           *audit.Service
+	media           *media.Service
+	ai              *ai.Service
+	chatRepo        ai.SessionRepo
+	cache           *cache.Cache
+	allowedOrigins  map[string]struct{}
+	loginLimiter    ratelimit.Limiter
+	chatLimiter     ratelimit.Limiter
+	chatListLimiter ratelimit.Limiter
 
 	pool *pgxpool.Pool
 }
@@ -84,10 +85,13 @@ func New(ctx context.Context, cfg config.Config) (*Server, error) {
 	}
 
 	var auditRepo audit.Repo
+	var chatRepo ai.SessionRepo
 	if pool != nil {
 		auditRepo = audit.NewPGRepo(pool)
+		chatRepo = ai.NewPGSessionRepo(pool)
 	} else {
 		auditRepo = audit.NewMemoryRepo()
+		chatRepo = ai.NewMemorySessionRepo()
 	}
 
 	allowed := make(map[string]struct{}, len(cfg.AllowedOrigins))
@@ -96,19 +100,31 @@ func New(ctx context.Context, cfg config.Config) (*Server, error) {
 	}
 
 	srv := &Server{
-		cfg:            cfg,
-		content:        contentSvc,
-		auth:           authSvc,
-		audit:          audit.NewService(auditRepo),
-		media:          mediaSvc,
-		ai:             ai.NewService(contentSvc, cfg.DeepSeekAPIKey, cfg.DeepSeekBaseURL, cfg.DeepSeekModel),
-		cache:          cache.New(),
-		allowedOrigins: allowed,
-		loginLimiter:   ratelimit.New(cfg.RateLimitLogin.Burst, cfg.RateLimitLogin.Window),
-		chatLimiter:    ratelimit.New(cfg.RateLimitChat.Burst, cfg.RateLimitChat.Window),
-		pool:           pool,
+		cfg:             cfg,
+		content:         contentSvc,
+		auth:            authSvc,
+		audit:           audit.NewService(auditRepo),
+		media:           mediaSvc,
+		ai:              ai.NewService(contentSvc, cfg.DeepSeekAPIKey, cfg.DeepSeekBaseURL, cfg.DeepSeekModel),
+		chatRepo:        chatRepo,
+		cache:           cache.New(),
+		allowedOrigins:  allowed,
+		loginLimiter:    ratelimit.New(cfg.RateLimitLogin.Burst, cfg.RateLimitLogin.Window),
+		chatLimiter:     ratelimit.New(cfg.RateLimitChat.Burst, cfg.RateLimitChat.Window),
+		chatListLimiter: ratelimit.New(cfg.RateLimitAIList.Burst, cfg.RateLimitAIList.Window),
+		pool:            pool,
 	}
 	return srv, nil
+}
+
+// isLocalDevOrigin is true when APP_ORIGIN points at a loopback host. Used to
+// decide whether a failed DATABASE_URL ping may fall back to in-memory auth.
+func isLocalDevOrigin(origin string) bool {
+	origin = strings.ToLower(strings.TrimSpace(origin))
+	return strings.HasPrefix(origin, "http://localhost:") ||
+		strings.HasPrefix(origin, "http://127.0.0.1:") ||
+		strings.HasPrefix(origin, "https://localhost:") ||
+		strings.HasPrefix(origin, "https://127.0.0.1:")
 }
 
 // buildAuthService picks postgres or the in-memory fallback based on
@@ -126,14 +142,23 @@ func buildAuthService(ctx context.Context, cfg config.Config) (*auth.Service, *p
 	if cfg.DatabaseURL != "" {
 		p, err := db.Open(ctx, cfg.DatabaseURL)
 		if err != nil {
-			return nil, nil, err
+			// Local dev often points DATABASE_URL at docker-compose credentials while
+			// another Postgres already owns :5432. Fall back to in-memory auth so
+			// `npm run dev:backend` still works and ADMIN_BOOTSTRAP_* can seed login.
+			if isLocalDevOrigin(cfg.AppOrigin) {
+				log.Printf("auth: postgres unavailable (%v); using in-memory auth for local dev", err)
+			} else {
+				return nil, nil, err
+			}
+		} else {
+			pool = p
+			userRepo = auth.NewPGUserRepo(p)
+			sessionRepo = auth.NewPGSessionRepo(p)
+			attemptRepo = auth.NewPGAttemptRepo(p)
+			mode = auth.ModePostgres
 		}
-		pool = p
-		userRepo = auth.NewPGUserRepo(p)
-		sessionRepo = auth.NewPGSessionRepo(p)
-		attemptRepo = auth.NewPGAttemptRepo(p)
-		mode = auth.ModePostgres
-	} else {
+	}
+	if userRepo == nil {
 		userRepo = auth.NewMemoryUserRepo()
 		sessionRepo = auth.NewMemorySessionRepo()
 		attemptRepo = auth.NewMemoryAttemptRepo()
@@ -221,8 +246,11 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("OPTIONS /v1/admin/media/upload/{token}", s.handleUploadOptions)
 	mux.HandleFunc("PUT /v1/admin/media/upload/{token}", s.handleUploadBinary)
 	mux.HandleFunc("POST /v1/ai/chat", s.handleChat)
+	mux.HandleFunc("GET /v1/ai/sessions", s.handleChatSessionsList)
+	mux.HandleFunc("GET /v1/ai/sessions/{id}/messages", s.handleChatSessionMessages)
+	mux.HandleFunc("DELETE /v1/ai/sessions/{id}", s.handleChatSessionDelete)
 
-	return s.withLogging(s.withCORS(s.withCSRF(mux)))
+	return s.withLogging(s.withCORS(s.withChatOwner(s.withCSRF(mux))))
 }
 
 // withCSRF enforces the double-submit cookie check on admin mutations. The
@@ -1069,106 +1097,6 @@ func (s *Server) handleUploadBinary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"publicUrl": publicURL})
-}
-
-func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
-	if !s.allowOrLimit(w, s.chatLimiter, clientIP(r), s.cfg.RateLimitChat.Window) {
-		return
-	}
-	var body struct {
-		Locale   string       `json:"locale"`
-		Messages []ai.Message `json:"messages"`
-	}
-	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 64*1024)).Decode(&body); err != nil {
-		writeClientError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-	locale := model.LocaleZH
-	if body.Locale == "en" {
-		locale = model.LocaleEN
-	}
-
-	upstream, err := s.ai.Stream(r.Context(), locale, body.Messages)
-	if err != nil {
-		writeServerError(w, r, err)
-		return
-	}
-	defer upstream.Body.Close()
-
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
-	if upstream.StatusCode >= 400 {
-		payload, _ := io.ReadAll(io.LimitReader(upstream.Body, 2048))
-		log.Printf("[err] AI upstream %d: %s", upstream.StatusCode, string(payload))
-		http.Error(w, "upstream error", http.StatusBadGateway)
-		return
-	}
-
-	if s.ai.DemoMode() {
-		_, _ = io.Copy(w, upstream.Body)
-		return
-	}
-
-	reader := upstream.Body
-	buf := make([]byte, 4096)
-	var pending strings.Builder
-	flusher, _ := w.(http.Flusher)
-	ctx := r.Context()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-
-		n, err := reader.Read(buf)
-		if n > 0 {
-			pending.Write(buf[:n])
-			for {
-				chunk := pending.String()
-				idx := strings.Index(chunk, "\n\n")
-				if idx < 0 {
-					break
-				}
-				event := strings.TrimSpace(chunk[:idx])
-				rest := chunk[idx+2:]
-				pending.Reset()
-				pending.WriteString(rest)
-
-				for _, line := range strings.Split(event, "\n") {
-					if !strings.HasPrefix(line, "data:") {
-						continue
-					}
-					payload := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
-					if payload == "[DONE]" {
-						return
-					}
-					var decoded struct {
-						Choices []struct {
-							Delta struct {
-								Content string `json:"content"`
-							} `json:"delta"`
-						} `json:"choices"`
-					}
-					if json.Unmarshal([]byte(payload), &decoded) == nil && len(decoded.Choices) > 0 {
-						if decoded.Choices[0].Delta.Content != "" {
-							_, _ = io.WriteString(w, decoded.Choices[0].Delta.Content)
-							if flusher != nil {
-								flusher.Flush()
-							}
-						}
-					}
-				}
-			}
-		}
-		if err != nil {
-			if !errors.Is(err, io.EOF) {
-				log.Printf("[err] AI stream read: %v", err)
-			}
-			return
-		}
-	}
 }
 
 func (s *Server) invalidatePublicCache() {

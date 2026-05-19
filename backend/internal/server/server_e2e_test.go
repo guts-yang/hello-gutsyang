@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
 	"sync"
 	"testing"
 	"time"
@@ -23,8 +24,9 @@ import (
 // emit when SessionCookie below is set. Pulled out so the test reads more
 // like the expected HTTP traffic.
 const (
-	testSessionCookie = "test_admin_session"
-	testCSRFCookie    = "test_admin_session_csrf"
+	testSessionCookie    = "test_admin_session"
+	testCSRFCookie       = "test_admin_session_csrf"
+	testChatOwnerCookie  = "test_chat_owner"
 )
 
 // newTestServer wires server.New() in the in-memory fallback path (no
@@ -52,8 +54,10 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 		SessionCookie:       testSessionCookie,
 		CookieSecure:        config.CookieSecureOff,
 		MediaMaxUploadBytes: 4 * 1024 * 1024,
+		ChatOwnerCookie:     testChatOwnerCookie,
 		RateLimitLogin:      config.RateLimitConfig{Burst: 1000, Window: time.Minute},
 		RateLimitChat:       config.RateLimitConfig{Burst: 1000, Window: time.Minute},
+		RateLimitAIList:     config.RateLimitConfig{Burst: 1000, Window: time.Minute},
 		LoginLockout: config.LockoutConfig{
 			Threshold: 3,
 			Window:    time.Minute,
@@ -286,6 +290,209 @@ func TestE2E_LoginLockoutAfterRepeatedFailures(t *testing.T) {
 	if resp.Header.Get("Retry-After") == "" {
 		t.Fatalf("expected Retry-After header on lockout")
 	}
+}
+
+// TestE2E_ChatSessionLifecycle exercises the visitor-facing chat persistence:
+// anonymous cookie minting, transcript storage, resuming an existing session,
+// starting a fresh one, deletion, and cross-owner isolation. The Go AI service
+// runs in demo mode (DEEPSEEK_API_KEY is unset in the fixture) so the upstream
+// stream is a canned string — but the persistence path is identical to prod.
+func TestE2E_ChatSessionLifecycle(t *testing.T) {
+	t.Parallel()
+	ts, clientA, _ := newTestServer(t)
+	tsURL := mustParseURL(t, ts.URL)
+
+	// Step 1: First POST mints the anon cookie, creates a session, returns
+	// the session id in a response header, and streams the demo reply back.
+	first := postChat(t, ts, clientA, map[string]any{
+		"locale": "zh",
+		"messages": []map[string]string{
+			{"role": "user", "content": "你最硬核的项目是什么？"},
+		},
+	})
+	if first.sessionID == "" {
+		t.Fatalf("missing X-Chat-Session-Id on first chat")
+	}
+	if len(first.body) == 0 {
+		t.Fatalf("empty stream body")
+	}
+	cookieFound := false
+	for _, c := range clientA.Jar.Cookies(tsURL) {
+		if c.Name == testChatOwnerCookie {
+			cookieFound = true
+			break
+		}
+	}
+	if !cookieFound {
+		t.Fatalf("chat owner cookie not set on first request")
+	}
+
+	// Step 2: GET sessions returns the one we just created.
+	sessions := getSessions(t, ts, clientA)
+	if len(sessions) != 1 {
+		t.Fatalf("want 1 session, got %d", len(sessions))
+	}
+	if sessions[0].ID != first.sessionID {
+		t.Fatalf("session id mismatch: list=%s header=%s", sessions[0].ID, first.sessionID)
+	}
+
+	// Step 3: GET messages returns user + assistant. The demo handler stores
+	// the canned reply as the assistant turn.
+	msgs := getMessages(t, ts, clientA, first.sessionID)
+	if len(msgs) != 2 {
+		t.Fatalf("want 2 messages, got %d", len(msgs))
+	}
+	if msgs[0].Role != "user" || msgs[1].Role != "assistant" {
+		t.Fatalf("unexpected role ordering: %v", msgs)
+	}
+
+	// Step 4: Sending again with the same sessionId resumes the same row;
+	// the transcript grows.
+	second := postChat(t, ts, clientA, map[string]any{
+		"locale":    "zh",
+		"sessionId": first.sessionID,
+		"messages": []map[string]string{
+			{"role": "user", "content": "你最硬核的项目是什么？"},
+			{"role": "assistant", "content": string(first.body)},
+			{"role": "user", "content": "再多说点细节"},
+		},
+	})
+	if second.sessionID != first.sessionID {
+		t.Fatalf("expected same session id on resume, got %s", second.sessionID)
+	}
+	if got := getSessions(t, ts, clientA); len(got) != 1 {
+		t.Fatalf("still want 1 session after resume, got %d", len(got))
+	}
+	if got := getMessages(t, ts, clientA, first.sessionID); len(got) != 4 {
+		t.Fatalf("want 4 messages after resume, got %d", len(got))
+	}
+
+	// Step 5: Omitting sessionId opens a new conversation.
+	third := postChat(t, ts, clientA, map[string]any{
+		"locale": "en",
+		"messages": []map[string]string{
+			{"role": "user", "content": "what is his strongest skill?"},
+		},
+	})
+	if third.sessionID == "" || third.sessionID == first.sessionID {
+		t.Fatalf("expected a fresh session id, got %q", third.sessionID)
+	}
+	if got := getSessions(t, ts, clientA); len(got) != 2 {
+		t.Fatalf("want 2 sessions after fresh chat, got %d", len(got))
+	}
+
+	// Step 6: DELETE the first session removes it from the list.
+	req, _ := http.NewRequest("DELETE", ts.URL+"/v1/ai/sessions/"+first.sessionID, nil)
+	resp, err := clientA.Do(req)
+	if err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != 200 {
+		t.Fatalf("delete expected 200, got %d", resp.StatusCode)
+	}
+	remaining := getSessions(t, ts, clientA)
+	if len(remaining) != 1 {
+		t.Fatalf("after delete want 1 session, got %d", len(remaining))
+	}
+	if remaining[0].ID != third.sessionID {
+		t.Fatalf("wrong remaining session: %s vs %s", remaining[0].ID, third.sessionID)
+	}
+
+	// Step 7: A different visitor (separate cookie jar) cannot see or read
+	// clientA's session. The list endpoint returns the fresh visitor's own
+	// (empty) list, and reading a foreign session id returns 404.
+	jarB, _ := cookiejar.New(nil)
+	clientB := &http.Client{Jar: jarB, Timeout: 5 * time.Second}
+	_ = postChat(t, ts, clientB, map[string]any{
+		"locale":   "en",
+		"messages": []map[string]string{{"role": "user", "content": "hi"}},
+	})
+	resp, err = clientB.Get(ts.URL + "/v1/ai/sessions/" + third.sessionID + "/messages")
+	if err != nil {
+		t.Fatalf("clientB foreign get: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("foreign session should be 404, got %d", resp.StatusCode)
+	}
+	sessionsB := getSessions(t, ts, clientB)
+	if len(sessionsB) != 1 {
+		t.Fatalf("clientB should only see its own session, got %d", len(sessionsB))
+	}
+}
+
+// chatResult bundles the streamed body and the resolved session id so chained
+// asserts read like the diary of a single conversation rather than a tangle
+// of header lookups.
+type chatResult struct {
+	body      []byte
+	sessionID string
+}
+
+func postChat(t *testing.T, ts *httptest.Server, client *http.Client, body map[string]any) chatResult {
+	t.Helper()
+	raw, err := json.Marshal(body)
+	if err != nil {
+		t.Fatalf("marshal chat body: %v", err)
+	}
+	req, _ := http.NewRequest("POST", ts.URL+"/v1/ai/chat", bytes.NewReader(raw))
+	req.Header.Set("content-type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("chat: %v", err)
+	}
+	defer resp.Body.Close()
+	stream, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != 200 {
+		t.Fatalf("chat expected 200, got %d: %s", resp.StatusCode, stream)
+	}
+	return chatResult{body: stream, sessionID: resp.Header.Get("X-Chat-Session-Id")}
+}
+
+func getSessions(t *testing.T, ts *httptest.Server, client *http.Client) []model.ChatSessionItem {
+	t.Helper()
+	resp, err := client.Get(ts.URL + "/v1/ai/sessions")
+	if err != nil {
+		t.Fatalf("get sessions: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		text, _ := io.ReadAll(resp.Body)
+		t.Fatalf("get sessions expected 200, got %d: %s", resp.StatusCode, text)
+	}
+	var out []model.ChatSessionItem
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		t.Fatalf("decode sessions: %v", err)
+	}
+	return out
+}
+
+func getMessages(t *testing.T, ts *httptest.Server, client *http.Client, id string) []model.ChatMessageItem {
+	t.Helper()
+	resp, err := client.Get(ts.URL + "/v1/ai/sessions/" + id + "/messages")
+	if err != nil {
+		t.Fatalf("get messages: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		text, _ := io.ReadAll(resp.Body)
+		t.Fatalf("get messages expected 200, got %d: %s", resp.StatusCode, text)
+	}
+	var out []model.ChatMessageItem
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		t.Fatalf("decode messages: %v", err)
+	}
+	return out
+}
+
+func mustParseURL(t *testing.T, raw string) *url.URL {
+	t.Helper()
+	u, err := url.Parse(raw)
+	if err != nil {
+		t.Fatalf("parse %q: %v", raw, err)
+	}
+	return u
 }
 
 func TestE2E_RevokeOtherSessions(t *testing.T) {

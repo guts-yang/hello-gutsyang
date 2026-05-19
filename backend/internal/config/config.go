@@ -24,12 +24,14 @@ type Config struct {
 	DeepSeekBaseURL   string
 	DeepSeekModel     string
 	SessionCookie     string
+	ChatOwnerCookie   string
 	CookieSecure      CookieSecureMode
 
 	MediaMaxUploadBytes int64
 
-	RateLimitLogin RateLimitConfig
-	RateLimitChat  RateLimitConfig
+	RateLimitLogin  RateLimitConfig
+	RateLimitChat   RateLimitConfig
+	RateLimitAIList RateLimitConfig
 
 	LoginLockout LockoutConfig
 }
@@ -99,6 +101,7 @@ func Load() Config {
 		DeepSeekBaseURL:   getEnv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
 		DeepSeekModel:     getEnv("DEEPSEEK_MODEL", "deepseek-v4-flash"),
 		SessionCookie:     getEnv("ADMIN_SESSION_COOKIE", "hello_gutsyang_admin_session"),
+		ChatOwnerCookie:   getEnv("CHAT_OWNER_COOKIE", "hello_gutsyang_chat_owner"),
 		CookieSecure:      parseCookieSecure(os.Getenv("COOKIE_SECURE")),
 
 		MediaMaxUploadBytes: getEnvInt64("MEDIA_MAX_UPLOAD_BYTES", 10*1024*1024),
@@ -110,6 +113,10 @@ func Load() Config {
 		RateLimitChat: RateLimitConfig{
 			Burst:  getEnvInt("RATE_LIMIT_CHAT_BURST", 5),
 			Window: getEnvDuration("RATE_LIMIT_CHAT_WINDOW", 30*time.Second),
+		},
+		RateLimitAIList: RateLimitConfig{
+			Burst:  getEnvInt("RATE_LIMIT_AI_LIST_BURST", 60),
+			Window: getEnvDuration("RATE_LIMIT_AI_LIST_WINDOW", time.Minute),
 		},
 
 		LoginLockout: LockoutConfig{

@@ -86,13 +86,15 @@ DEEPSEEK_MODEL=deepseek-v4-flash
 ### 4. 跑数据库迁移
 
 ```bash
-cd backend && go run ./cmd/api migrate up
+cd backend
+go run ./cmd/api migrate up
 ```
 
 ### 5. 生成管理员密码哈希（推荐）
 
 ```bash
-cd backend && go run ./cmd/api hash 'your-strong-password'
+cd backend
+go run ./cmd/api hash 'your-strong-password'
 ```
 
 把输出贴到 `ADMIN_BOOTSTRAP_PASSWORD_HASH`，并清空 `ADMIN_BOOTSTRAP_PASSWORD`。
@@ -131,9 +133,9 @@ npm run dev:frontend  # Next.js  → :3000
 
 **Admin**：`/v1/admin/login` `/logout` `/session` `/password` `/email` `/sessions` `/audit` `/profile` `/projects` `/experiences` `/honors` `/media/upload-url`
 
-**慢路径**：`POST /v1/ai/chat`
+**访客 AI**：`POST /v1/ai/chat`（流式回答 + 落库）· `GET /v1/ai/sessions` · `GET /v1/ai/sessions/:id/messages` · `DELETE /v1/ai/sessions/:id`
 
-> 登录 / AI 两处默认带 IP 限流。
+> 登录 / AI 两处默认带 IP 限流；AI 会话列表/读取/删除走单独宽松桶（`RATE_LIMIT_AI_LIST_*`）。
 
 ## 管理员鉴权
 
@@ -147,6 +149,7 @@ npm run dev:frontend  # Next.js  → :3000
 ## 默认安全与稳定性
 
 - 管理员密码：bcrypt 存储，明文 bootstrap 启动即丢弃
+- 访客 AI 会话：匿名 `CHAT_OWNER_COOKIE`（HttpOnly + SameSite=Lax + 长期有效）将聊天历史绑定到浏览器；`chat_sessions` / `chat_messages` 两表存对话，删 cookie 等于一键忘记我
 - CORS：白名单匹配，不回显任意 Origin
 - HTTP 超时：`ReadHeader=5s` / `Read=15s` / `Write=5min` / `Idle=2min`
 - 媒体上传：路径穿越防御 + 大小上限 + MIME 白名单 + 过期 ticket 自动回收
@@ -160,7 +163,7 @@ npm run dev:frontend  # Next.js  → :3000
 - [ ] `DATABASE_URL` 指向托管 Postgres，且执行过 `migrate up`
 - [ ] `ADMIN_BOOTSTRAP_PASSWORD_HASH` 仅一次性使用：首次启动后从 secret store 删除
 - [ ] `ADMIN_BOOTSTRAP_PASSWORD` 在生产环境**永远空着**
-- [ ] 把 Postgres 的 `admin_users` / `admin_sessions` / `admin_audit` / `admin_login_attempts` 纳入备份策略
+- [ ] 把 Postgres 的 `admin_users` / `admin_sessions` / `admin_audit` / `admin_login_attempts` / `chat_sessions` / `chat_messages` 纳入备份策略
 - [ ] 验证：故意输错 5 次密码 → 收到 429 + `Retry-After`
 - [ ] 验证：随便从浏览器 devtools 删掉 csrf cookie → POST 写接口收到 403
 

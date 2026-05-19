@@ -7,31 +7,54 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n';
 
-type ChatMessage = { role: 'user' | 'assistant'; content: string };
+export type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
 /**
  * Pure chat surface. Layout is owned by the parent (popover, bottom sheet,
  * full page) — pass `className` for sizing and `variant="bare"` to drop the
  * outer glass card so the parent panel provides the chrome.
+ *
+ * Session model: when the parent passes a `sessionId`, the room scopes its
+ * conversation to that session. Switching to a new id resets the visible
+ * transcript to `initialMessages` (typically replayed from the API). The
+ * parent learns about new sessions via `onSessionResolved`, which fires after
+ * the streaming response surfaces the X-Chat-Session-Id header — this lets
+ * the sidebar refresh and select the just-created session without the chat
+ * room knowing how the sidebar is rendered.
  */
 export function ChatRoom({
   locale,
   className,
   variant = 'card',
+  sessionId = null,
+  initialMessages,
+  onSessionResolved,
 }: {
   locale: Locale;
   className?: string;
   variant?: 'card' | 'bare';
+  sessionId?: string | null;
+  initialMessages?: ChatMessage[];
+  onSessionResolved?: (sessionId: string) => void;
 }) {
   const t = useTranslations('sections.ai');
   const [input, setInput] = React.useState('');
-  const [messages, setMessages] = React.useState<ChatMessage[]>([]);
+  const [messages, setMessages] = React.useState<ChatMessage[]>(initialMessages ?? []);
   const [draft, setDraft] = React.useState('');
   const [pending, setPending] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const draftRef = React.useRef('');
   const flushTimerRef = React.useRef<number | null>(null);
   const nextMessagesRef = React.useRef<ChatMessage[]>([]);
+
+  // Reset visible transcript whenever the parent switches the active session
+  // (including the "new chat" → sessionId=null reset).
+  React.useEffect(() => {
+    setMessages(initialMessages ?? []);
+    setDraft('');
+    draftRef.current = '';
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
   React.useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -65,11 +88,22 @@ export function ChatRoom({
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ messages: next, locale }),
+        body: JSON.stringify({
+          messages: next,
+          locale,
+          ...(sessionId ? { sessionId } : {}),
+        }),
       });
 
       if (!res.ok || !res.body) {
         throw new Error(`Chat request failed (${res.status})`);
+      }
+
+      // Surface the session id to the parent before draining the stream so
+      // the sidebar can already insert the new row optimistically.
+      const resolved = res.headers.get('X-Chat-Session-Id');
+      if (resolved && resolved !== sessionId) {
+        onSessionResolved?.(resolved);
       }
 
       const reader = res.body.getReader();
@@ -135,7 +169,7 @@ export function ChatRoom({
         ref={scrollRef}
         className="scrollbar-none flex-1 space-y-3 overflow-y-auto px-1 py-3"
       >
-        {messages.length === 0 && (
+        {messages.length === 0 && !pending && (
           <div className="grid h-full place-items-center px-4 text-center text-sm text-muted-foreground">
             {t('placeholder')}
           </div>
@@ -150,24 +184,31 @@ export function ChatRoom({
                 'max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm leading-relaxed',
                 m.role === 'user'
                   ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
-                  : 'border border-white/40 dark:border-white/10 bg-white/60 dark:bg-white/5',
+                  : 'border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5',
               )}
             >
               {m.content || (pending && i === messages.length - 1 ? t('thinking') : '')}
             </div>
           </div>
         ))}
+        {pending && !draft && messages.length > 0 && (
+          <div className="flex justify-start">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-muted-foreground dark:border-white/10 dark:bg-white/5">
+              {t('thinking')}
+            </div>
+          </div>
+        )}
       </div>
 
       <form
         onSubmit={send}
-        className="flex items-center gap-2 border-t border-white/30 dark:border-white/10 pt-3"
+        className="flex items-center gap-2 border-t border-slate-200 pt-3 dark:border-white/10"
       >
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={t('placeholder')}
-          className="h-11 flex-1 rounded-full border border-white/40 dark:border-white/10 bg-white/50 dark:bg-white/5 px-4 text-sm outline-none ring-0 transition-colors focus:border-[hsl(var(--primary)/0.5)]"
+          className="h-11 flex-1 rounded-full border border-slate-200 bg-white px-4 text-sm outline-none ring-0 transition-colors focus:border-[hsl(var(--primary)/0.5)] dark:border-white/10 dark:bg-white/5"
         />
         <Button type="submit" disabled={pending || !input.trim()} size="icon">
           <Send className="h-4 w-4" />
