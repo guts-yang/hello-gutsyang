@@ -171,6 +171,25 @@ type AdminAuditItem struct {
 	CreatedAt time.Time      `json:"createdAt"`
 }
 
+// ChatSessionItem is one row in GET /v1/ai/sessions. The visitor only needs
+// to recognise the session in the sidebar, so we expose just enough metadata
+// to render a label and sort by recency.
+type ChatSessionItem struct {
+	ID        string    `json:"id"`
+	Title     string    `json:"title"`
+	Locale    string    `json:"locale"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// ChatMessageItem is one transcript entry in GET /v1/ai/sessions/{id}/messages.
+type ChatMessageItem struct {
+	ID        string    `json:"id"`
+	Role      string    `json:"role"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type MediaUploadRequest struct {
 	FileName string `json:"fileName"`
 	Folder   string `json:"folder"`

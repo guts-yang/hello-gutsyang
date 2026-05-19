@@ -2,7 +2,7 @@
   "name": "hello-chenyliao",
   "version": "0.1.0",
   "private": true,
-  "description": "基于 Next.js 15 与 Go 1.25 的个人主页全栈模板：前端负责展示与路由，Go API 收口内容管理、鉴权、媒体上传、AI 对话与 PDF 简历，开箱即用且支持中英双语。",
+  "description": "基于 Next.js 15 与 Go 1.25 的个人主页全栈模板：前端负责展示与路由，Go API 收口内容管理、鉴权、媒体上传与 AI 对话，开箱即用且支持中英双语。",
   "scripts": {
     "dev": "next dev",
     "dev:frontend": "next dev",

@@ -1,5 +1,5 @@
 // Package ratelimit exposes a tiny in-memory rate limiter used by the API
-// handlers that should not be cheap to spam (login, AI chat, PDF render).
+// handlers that should not be cheap to spam (login, AI chat).
 //
 // The Limiter interface intentionally hides the storage so a Phase 2
 // migration to Redis or any distributed limiter can drop in without touching

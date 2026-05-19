@@ -66,7 +66,13 @@
     "trigger": "Ask AI",
     "panelTitle": "AI Concierge",
     "panelHint": "Ask anything about me in natural language",
-    "close": "Close"
+    "close": "Close",
+    "history": "History",
+    "newChat": "New chat",
+    "empty": "No sessions yet",
+    "delete": "Delete",
+    "confirmDelete": "Delete this conversation?",
+    "untitled": "New chat"
   },
   "footer": {
     "made": "Hand-crafted with Next.js & Tailwind",
