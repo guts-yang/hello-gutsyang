@@ -8,17 +8,7 @@ import { deleteExperience } from '@/app/admin/actions';
 import { listExperienceRows } from '@/lib/admin-api';
 
 export default async function AdminExperiencesPage() {
-<<<<<<< Updated upstream
-  const supabase = createSupabaseServerClient();
-  const { data } = await supabase!
-    .from('experiences')
-    .select('*')
-    .order('display_order', { ascending: false })
-    .order('started_at', { ascending: false });
-  const rows = (data ?? []) as DbExperienceRow[];
-=======
   const rows = await listExperienceRows();
->>>>>>> Stashed changes
 
   return (
     <div className="space-y-6">

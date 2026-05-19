@@ -1,22 +1,10 @@
 # Personal Site Template
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-# hello-chenyliao
-
-**廖晨扬 / chenyliao (Tony) 的个人主页 · Personal Site**
-=======
 一个开箱即用的**个人主页全栈模板**。
-=======
-# hello-gutsyang
-
-**廖晨扬 / gutsyang (Tony) 的个人主页 · Personal Site**
->>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
 
 - 前端：`Next.js` 负责页面、路由、国际化
 - 后端：`Go API` 负责内容管理、登录、媒体上传、AI 对话、PDF 导出
 - 数据：内容默认走本地文件快照；管理员鉴权（用户、会话、登录失败、审计）落 Postgres，开发默认 in-memory 兜底
->>>>>>> Stashed changes
 
 ## 架构
 
@@ -35,26 +23,7 @@ flowchart LR
 - `backend/`：Go 后端，含 `auth` / `content` / `media` / `ai` / `pdf` / `ratelimit`
 - `lib/`：前端访问后端的工具层、共享 DTO、静态回退数据
 
-<<<<<<< Updated upstream
-</div>
-
----
-
-## 🌏 中文说明
-
-### 项目简介
-
-`hello-gutsyang` 是一个为「单人作者 + 多场景展示」设计的现代个人主页：
-
-- **前台**：基于 Bento Grid 的首页 + 经历、项目、荣誉详情页，支持中英双语切换
-- **后台**：`/admin` 内置轻量 CMS，可在线管理 profile / experiences / honors / projects，无需直接改数据库
-- **AI 聊天**：`/chat` 路由对接 DeepSeek，让访客可以"问我自己" —— 通过 `lib/ai/system-prompt.ts` 注入身份上下文
-- **简历导出**：`/api/resume.pdf` 用 `@react-pdf/renderer` 即时生成 PDF 简历
-
-### 技术栈
-=======
 ## 技术栈
->>>>>>> Stashed changes
 
 | 类别 | 技术 |
 | --- | --- |
@@ -159,40 +128,7 @@ npm run dev:frontend  # Next.js  → :3000
 
 ## 接口速查
 
-<<<<<<< Updated upstream
-```
-hello-gutsyang/
-├── app/
-│   ├── [locale]/          # 双语前台（zh / en）
-│   ├── admin/             # CMS 后台 + 登录页（中间件鉴权）
-│   ├── api/
-│   │   ├── chat/          # DeepSeek 聊天流式接口
-│   │   └── resume.pdf/    # PDF 简历导出
-│   ├── globals.css
-│   └── layout.tsx
-├── components/
-│   ├── bento/             # 首页 Bento Grid 卡片
-│   ├── chat/              # 聊天室 UI
-│   ├── admin/             # 后台表单组件
-│   └── ui/                # 通用 UI 原子组件
-├── lib/
-│   ├── ai/                # AI 系统提示词
-│   ├── supabase/          # Supabase client / server / types
-│   ├── content.ts         # 内容读取层
-│   └── profile.ts         # Profile 读取层
-├── messages/
-│   ├── zh.json            # 中文文案
-│   └── en.json            # 英文文案
-├── supabase/
-│   ├── migrations/        # SQL 迁移
-│   └── seed.sql           # 种子数据
-├── i18n.ts                # next-intl 配置
-├── middleware.ts          # i18n + 后台鉴权
-└── next.config.mjs
-```
-=======
 **Public**：`/v1/public/home` `/profile` `/projects[/:slug]` `/experiences[/:slug]` `/honors` `/education` `/timeline`
->>>>>>> Stashed changes
 
 **Admin**：`/v1/admin/login` `/logout` `/session` `/password` `/email` `/sessions` `/audit` `/profile` `/projects` `/experiences` `/honors` `/media/upload-url`
 
@@ -209,15 +145,7 @@ hello-gutsyang/
 - **审计**：登录、改密、改邮箱、踢会话、CMS 增删改写入 `admin_audit`，前端在 `/admin/audit` 可视化
 - **运维**：忘记密码用 `go run ./cmd/api reset-password admin@example.com`，改邮箱用 `set-email`，重启即生效
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-`hello-chenyliao` is a modern personal site designed for a "single-author, multi-surface" portfolio:
-=======
 ## 默认安全与稳定性
->>>>>>> Stashed changes
-=======
-`hello-gutsyang` is a modern personal site designed for a "single-author, multi-surface" portfolio:
->>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
 
 - 管理员密码：bcrypt 存储，明文 bootstrap 启动即丢弃
 - CORS：白名单匹配，不回显任意 Origin
@@ -247,39 +175,4 @@ hello-gutsyang/
 
 ## License
 
-<<<<<<< Updated upstream
-- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase project
-- `SUPABASE_SERVICE_ROLE_KEY` — server-only, **never expose to the client**
-- `ADMIN_EMAIL_ALLOWLIST` — comma-separated emails allowed into `/admin`
-- `DEEPSEEK_API_KEY` — required for the AI chat surface
-
-### Scripts
-
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Dev server with HMR |
-| `npm run build` | Production build |
-| `npm run start` | Serve the production build |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | `tsc --noEmit` |
-
-### Branch Strategy
-
-- `main` — protected release branch, mirrors production
-- `develop` — default development branch; feature branches fork from here and merge back before being PR'd to `main`
-- `feat/*` · `fix/*` · `chore/*` — short-lived single-purpose branches
-
----
-
-## 👤 Author
-
-- **Name** — 廖晨扬 / gutsyang (Tony)
-- **Handle** — [@gutsyang](https://github.com/guts-yang) (GitHub: `guts-yang`)
-- **Repo** — <https://github.com/guts-yang/hello-gutsyang>
-
-## 📄 License
-
-License TBD. Until a license is explicitly added to this repository, all rights are reserved by the author.
-=======
 MIT
->>>>>>> Stashed changes

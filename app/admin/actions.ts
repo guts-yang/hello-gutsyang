@@ -39,17 +39,8 @@ function readFormJson<T = unknown>(fd: FormData, key: string, fallback: T): T {
   }
 }
 
-<<<<<<< Updated upstream
-async function requireAdmin() {
-  const supabase = createSupabaseServerClient();
-  if (!supabase) throw new Error('Supabase is not configured.');
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/admin/login');
-  return supabase;
-=======
 async function assertAdminSession() {
   await requireAdminSession();
->>>>>>> Stashed changes
 }
 
 function revalidateAll() {
