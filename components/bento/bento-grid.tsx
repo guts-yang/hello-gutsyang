@@ -1,10 +1,11 @@
-import type { Locale } from '@/i18n';
+﻿import type { Locale } from '@/i18n';
 import { ProfileHubCard } from './profile-hub-card';
 import { ProjectCard } from './project-card';
 import { ExperienceCard } from './experience-card';
 import { HonorsCard } from './honors-card';
 import { TimelineCard } from './timeline-card';
 import { EducationCard } from './education-card';
+import { ResumeDownloadCard } from './resume-download-card';
 import { getHomeContent } from '@/lib/content';
 
 export async function BentoGrid({ locale }: { locale: Locale }) {
@@ -23,21 +24,12 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
       id="home"
       className="grid grid-cols-1 gap-4 py-4 md:grid-cols-12 md:gap-5 md:py-8 lg:gap-6 md:auto-rows-[minmax(180px,auto)]"
     >
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-      <ProfileHubCard profile={profile} locale={locale} className="md:col-span-4 md:row-span-2" />
-      <AiChatCard className="md:col-span-2" />
-=======
       {/* Row 1-2: Hero profile (8x2) + education card */}
-=======
-      {/* Row 1-2: Hero profile (8x2) + right stack: Education on top, Resume PDF below */}
->>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
       <ProfileHubCard
         profile={profile}
         locale={locale}
         className="md:col-span-8 md:row-span-2"
       />
-<<<<<<< HEAD
       {primaryEducation && (
         <EducationCard
           education={primaryEducation}
@@ -45,19 +37,8 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
           className="md:col-span-4 md:row-span-2"
         />
       )}
->>>>>>> Stashed changes
 
-      <ResumeDownloadCard locale={locale} className="md:col-span-1" />
-=======
->>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
-      {primaryEducation && (
-        <EducationCard
-          education={primaryEducation}
-          locale={locale}
-          className="md:col-span-4"
-        />
-      )}
-      <ResumeDownloadCard locale={locale} className="md:col-span-4" />
+      <ResumeDownloadCard locale={locale} className="md:col-span-12" />
 
       {/* Section: Projects */}
       <SectionHeader

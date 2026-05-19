@@ -12,15 +12,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!isBackendConfigured()) {
     redirect('/admin/login');
   }
-<<<<<<< Updated upstream
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = (await supabase!.auth.getUser()) ?? { data: { user: null } };
-  if (!user) redirect('/admin/login');
-=======
   const session = await requireAdminSession();
->>>>>>> Stashed changes
 
   return (
     <div className="mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[240px,1fr] md:px-6">

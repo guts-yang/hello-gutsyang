@@ -2,11 +2,6 @@ import { notFound } from 'next/navigation';
 import { HonorForm } from '../honor-form';
 import { getHonorRow } from '@/lib/admin-api';
 
-<<<<<<< Updated upstream
-export default async function EditHonorPage({ params }: { params: { id: string } }) {
-  const supabase = createSupabaseServerClient();
-  const { data } = await supabase!.from('honors').select('*').eq('id', params.id).maybeSingle();
-=======
 export default async function EditHonorPage({
   params,
 }: {
@@ -14,7 +9,6 @@ export default async function EditHonorPage({
 }) {
   const { id } = await params;
   const data = await getHonorRow(id).catch(() => null);
->>>>>>> Stashed changes
   if (!data) notFound();
   return (
     <div className="space-y-4">

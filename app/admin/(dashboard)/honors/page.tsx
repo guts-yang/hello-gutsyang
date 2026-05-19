@@ -8,16 +8,7 @@ import { deleteHonor } from '@/app/admin/actions';
 import { listHonorRows } from '@/lib/admin-api';
 
 export default async function AdminHonorsPage() {
-<<<<<<< Updated upstream
-  const supabase = createSupabaseServerClient();
-  const { data } = await supabase!
-    .from('honors')
-    .select('*')
-    .order('display_order', { ascending: false });
-  const rows = (data ?? []) as DbHonorRow[];
-=======
   const rows = await listHonorRows();
->>>>>>> Stashed changes
 
   return (
     <div className="space-y-6">

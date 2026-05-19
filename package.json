@@ -1,15 +1,12 @@
 {
-  "name": "hello-gutsyang",
+  "name": "hello-chenyliao",
   "version": "0.1.0",
   "private": true,
   "description": "基于 Next.js 15 与 Go 1.25 的个人主页全栈模板：前端负责展示与路由，Go API 收口内容管理、鉴权、媒体上传、AI 对话与 PDF 简历，开箱即用且支持中英双语。",
   "scripts": {
     "dev": "next dev",
-<<<<<<< Updated upstream
-=======
     "dev:frontend": "next dev",
     "dev:backend": "cd backend && go run ./cmd/api",
->>>>>>> Stashed changes
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
@@ -29,26 +26,13 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.1",
     "@radix-ui/react-toast": "^1.2.2",
-<<<<<<< Updated upstream
-    "@react-pdf/renderer": "^4.0.0",
-    "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.46.0",
-    "ai": "^3.4.32",
-=======
->>>>>>> Stashed changes
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.460.0",
-<<<<<<< Updated upstream
-    "next": "^14.2.18",
-    "next-intl": "^3.25.0",
-    "next-mdx-remote": "^5.0.0",
-=======
     "next": "^15.5.18",
     "next-intl": "^4.12.0",
     "next-mdx-remote": "^6.0.0",
->>>>>>> Stashed changes
     "next-themes": "^0.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -61,15 +45,9 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
-<<<<<<< Updated upstream
-    "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.18",
-    "postcss": "^8.4.49",
-=======
     "eslint": "^9.39.4",
     "eslint-config-next": "^15.5.18",
     "postcss": "^8.5.10",
->>>>>>> Stashed changes
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3"
   }

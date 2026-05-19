@@ -14,10 +14,11 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({
-  params: { locale },
+  params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
+  const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'site' });
   return {
     title: { default: t('title'), template: `%s · ${t('title')}` },
@@ -43,9 +44,9 @@ export default async function LocaleLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = params;
+  const { locale } = await params;
   if (!locales.includes(locale as Locale)) notFound();
 
   // Required for next-intl static rendering

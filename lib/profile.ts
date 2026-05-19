@@ -74,17 +74,7 @@ export const profile = {
     en: 'CS undergrad at South China University of Technology, researching LLM machine unlearning. I also build multi-agent systems, quant strategies, and full-stack apps.',
   } satisfies LocalizedString,
   socials: [
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-    { type: 'github', href: 'https://github.com/chenyliao', label: '@chenyliao' },
-    { type: 'email', href: 'mailto:hi@chenyliao.dev', label: 'hi@chenyliao.dev' },
-=======
     { type: 'github', href: 'https://github.com/guts-yang', label: '@gutsyang' },
->>>>>>> Stashed changes
-=======
-    { type: 'github', href: 'https://github.com/guts-yang', label: '@gutsyang' },
-    { type: 'email', href: 'mailto:578165807@qq.com', label: '578165807@qq.com' },
->>>>>>> ec8fe414a3c59f2a5b791b5cf559774075218e9e
     { type: 'wechat', href: '#wechat', label: 'WeChat QR' },
   ] satisfies SocialLink[],
 } as const;

@@ -3,19 +3,10 @@ import { GlassCard } from '@/components/glass-card';
 import { listExperienceRows, listHonorRows, listProjectRows } from '@/lib/admin-api';
 
 async function counts() {
-<<<<<<< Updated upstream
-  const supabase = createSupabaseServerClient();
-  if (!supabase) return { projects: 0, experiences: 0, honors: 0 };
-  const [{ count: projects }, { count: experiences }, { count: honors }] = await Promise.all([
-    supabase.from('projects').select('*', { count: 'exact', head: true }),
-    supabase.from('experiences').select('*', { count: 'exact', head: true }),
-    supabase.from('honors').select('*', { count: 'exact', head: true }),
-=======
   const [projects, experiences, honors] = await Promise.all([
     listProjectRows(),
     listExperienceRows(),
     listHonorRows(),
->>>>>>> Stashed changes
   ]);
   return { projects: projects.length, experiences: experiences.length, honors: honors.length };
 }

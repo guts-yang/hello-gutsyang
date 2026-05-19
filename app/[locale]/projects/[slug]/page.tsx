@@ -20,11 +20,12 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string; slug: string };
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const project = await getProjectBySlug(params.slug);
+  const { locale: rawLocale, slug } = await params;
+  const project = await getProjectBySlug(slug);
   if (!project) return {};
-  const locale = params.locale as Locale;
+  const locale = rawLocale as Locale;
   return {
     title: pickLocale(project.title, locale),
     description: pickLocale(project.tagline, locale),
@@ -34,13 +35,14 @@ export async function generateMetadata({
 export default async function ProjectDetailPage({
   params,
 }: {
-  params: { locale: string; slug: string };
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  setRequestLocale(params.locale);
-  const project = await getProjectBySlug(params.slug);
+  const { locale: rawLocale, slug } = await params;
+  setRequestLocale(rawLocale);
+  const project = await getProjectBySlug(slug);
   if (!project) notFound();
 
-  const locale = params.locale as Locale;
+  const locale = rawLocale as Locale;
   const t = await getTranslations({ locale, namespace: 'sections.projects' });
 
   return (

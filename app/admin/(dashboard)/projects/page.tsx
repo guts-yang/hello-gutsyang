@@ -8,17 +8,7 @@ import { deleteProject } from '@/app/admin/actions';
 import { listProjectRows } from '@/lib/admin-api';
 
 export default async function AdminProjectsPage() {
-<<<<<<< Updated upstream
-  const supabase = createSupabaseServerClient();
-  const { data } = await supabase!
-    .from('projects')
-    .select('*')
-    .order('display_order', { ascending: false })
-    .order('started_at', { ascending: false });
-  const rows = (data ?? []) as DbProjectRow[];
-=======
   const rows = await listProjectRows();
->>>>>>> Stashed changes
 
   return (
     <div className="space-y-6">
