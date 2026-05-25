@@ -1,14 +1,30 @@
-﻿import type { Locale } from '@/i18n';
+import type { Locale } from '@/i18n';
 import { ProfileHubCard } from './profile-hub-card';
 import { ProjectCard } from './project-card';
 import { ExperienceCard } from './experience-card';
 import { HonorsCard } from './honors-card';
 import { TimelineCard } from './timeline-card';
 import { EducationCard } from './education-card';
-import { getHomeContent } from '@/lib/content';
+import { ResumeDownloadCard } from './resume-download-card';
+import { Reveal } from '@/components/motion';
+import {
+  getProfile,
+  getProjects,
+  getExperiences,
+  getHonors,
+  getEducation,
+  getTimeline,
+} from '@/lib/content';
 
 export async function BentoGrid({ locale }: { locale: Locale }) {
-  const { profile, projects, experiences, honors, education, timeline } = await getHomeContent();
+  const [profile, projects, experiences, honors, education, timeline] = await Promise.all([
+    getProfile(),
+    getProjects(),
+    getExperiences(),
+    getHonors(),
+    getEducation(),
+    getTimeline(),
+  ]);
 
   const projectCards = projects.slice(0, 3);
   const academicHero = projectCards.find((p) => p.kind === 'academic') ?? projectCards[0];
@@ -23,19 +39,18 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
       id="home"
       className="grid grid-cols-1 gap-4 py-4 md:grid-cols-12 md:gap-5 md:py-8 lg:gap-6 md:auto-rows-[minmax(180px,auto)]"
     >
-      {/* Row 1-2: Hero profile (8x2) + education card */}
-      <ProfileHubCard
-        profile={profile}
-        locale={locale}
-        className="md:col-span-8 md:row-span-2"
-      />
+      {/* Row 1-2: Hero profile (8x2) + right stack: Education on top, Resume PDF below */}
+      <Reveal className="md:col-span-8 md:row-span-2">
+        <ProfileHubCard profile={profile} locale={locale} className="h-full" />
+      </Reveal>
       {primaryEducation && (
-        <EducationCard
-          education={primaryEducation}
-          locale={locale}
-          className="md:col-span-4 md:row-span-2"
-        />
+        <Reveal delay={80} className="md:col-span-4">
+          <EducationCard education={primaryEducation} locale={locale} className="h-full" />
+        </Reveal>
       )}
+      <Reveal delay={140} className="md:col-span-4">
+        <ResumeDownloadCard locale={locale} className="h-full" />
+      </Reveal>
 
       {/* Section: Projects */}
       <SectionHeader
@@ -45,14 +60,14 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
       />
 
       {academicHero && (
-        <ProjectCard
-          project={academicHero}
-          locale={locale}
-          className="md:col-span-8 md:row-span-2"
-        />
+        <Reveal className="md:col-span-8 md:row-span-2">
+          <ProjectCard project={academicHero} locale={locale} className="h-full" />
+        </Reveal>
       )}
-      {sideProjects.map((p) => (
-        <ProjectCard key={p.slug} project={p} locale={locale} className="md:col-span-4" />
+      {sideProjects.map((p, i) => (
+        <Reveal key={p.slug} delay={80 + i * 60} className="md:col-span-4">
+          <ProjectCard project={p} locale={locale} className="h-full" />
+        </Reveal>
       ))}
 
       {/* Section: Experience + Honors */}
@@ -62,13 +77,13 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
         subtitle={locale === 'zh' ? '在真实场景中验证想法' : 'Validating ideas in real environments'}
       />
       {primaryExperience && (
-        <ExperienceCard
-          experience={primaryExperience}
-          locale={locale}
-          className="md:col-span-7"
-        />
+        <Reveal className="md:col-span-7">
+          <ExperienceCard experience={primaryExperience} locale={locale} className="h-full" />
+        </Reveal>
       )}
-      <HonorsCard honors={honors} locale={locale} className="md:col-span-5" />
+      <Reveal delay={80} className="md:col-span-5">
+        <HonorsCard honors={honors} locale={locale} className="h-full" />
+      </Reveal>
 
       {/* Section: Timeline */}
       <SectionHeader
@@ -76,7 +91,9 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
         title={locale === 'zh' ? '成长时间轴' : 'Growth Timeline'}
         subtitle={locale === 'zh' ? '从课堂到赛场到实验室' : 'Classroom → competition → lab'}
       />
-      <TimelineCard events={timeline} locale={locale} className="md:col-span-12" />
+      <Reveal className="md:col-span-12">
+        <TimelineCard events={timeline} locale={locale} />
+      </Reveal>
     </section>
   );
 }

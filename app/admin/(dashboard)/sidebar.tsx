@@ -1,46 +1,41 @@
 'use client';
 
-import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderGit2, Briefcase, Award, User, LogOut, ExternalLink, Settings, ScrollText } from 'lucide-react';
+import {
+  LayoutDashboard,
+  FolderGit2,
+  Briefcase,
+  Award,
+  User,
+  LogOut,
+  ExternalLink,
+  PenSquare,
+  BarChart3,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
-const groups = [
-  {
-    title: '内容',
-    items: [
-      { href: '/admin', label: '总览', icon: LayoutDashboard, exact: true },
-      { href: '/admin/profile', label: 'Profile', icon: User },
-      { href: '/admin/projects', label: 'Projects', icon: FolderGit2 },
-      { href: '/admin/experiences', label: 'Experiences', icon: Briefcase },
-      { href: '/admin/honors', label: 'Honors', icon: Award },
-    ],
-  },
-  {
-    title: '账号',
-    items: [
-      { href: '/admin/settings', label: '设置', icon: Settings },
-      { href: '/admin/audit', label: '审计', icon: ScrollText },
-    ],
-  },
+const items = [
+  { href: '/admin', label: '总览', icon: LayoutDashboard, exact: true },
+  { href: '/admin/profile', label: 'Profile', icon: User },
+  { href: '/admin/projects', label: 'Projects', icon: FolderGit2 },
+  { href: '/admin/experiences', label: 'Experiences', icon: Briefcase },
+  { href: '/admin/honors', label: 'Honors', icon: Award },
+  { href: '/admin/posts', label: 'Posts', icon: PenSquare },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 export function AdminSidebar({ email }: { email: string }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [loggingOut, setLoggingOut] = React.useState(false);
 
   async function signOut() {
-    setLoggingOut(true);
-    try {
-      await fetch('/api/admin/logout', { method: 'POST' });
-      router.replace('/admin/login');
-      router.refresh();
-    } finally {
-      setLoggingOut(false);
-    }
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    router.replace('/admin/login');
+    router.refresh();
   }
 
   return (
@@ -52,33 +47,26 @@ export function AdminSidebar({ email }: { email: string }) {
           {email}
         </p>
       </div>
-      <nav className="flex flex-col gap-4">
-        {groups.map((group) => (
-          <div key={group.title} className="space-y-1">
-            <p className="px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              {group.title}
-            </p>
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm transition-colors',
-                    active
-                      ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
-                      : 'text-muted-foreground hover:bg-white/40 hover:text-foreground dark:hover:bg-white/10',
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+      <nav className="flex flex-col gap-1">
+        {items.map((item) => {
+          const Icon = item.icon;
+          const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm transition-colors',
+                active
+                  ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
+                  : 'text-muted-foreground hover:bg-white/40 hover:text-foreground dark:hover:bg-white/10',
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
       <div className="mt-auto flex flex-col gap-2 pt-3">
         <Link
@@ -93,11 +81,10 @@ export function AdminSidebar({ email }: { email: string }) {
         <button
           type="button"
           onClick={signOut}
-          disabled={loggingOut}
-          className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs text-muted-foreground hover:bg-white/40 hover:text-foreground disabled:opacity-50 dark:hover:bg-white/10"
+          className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs text-muted-foreground hover:bg-white/40 hover:text-foreground dark:hover:bg-white/10"
         >
           <LogOut className="h-3.5 w-3.5" />
-          {loggingOut ? '退出中…' : '退出登录'}
+          退出登录
         </button>
       </div>
     </aside>
