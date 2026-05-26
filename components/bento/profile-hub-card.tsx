@@ -37,6 +37,7 @@ export function ProfileHubCard({
   className?: string;
 }) {
   const t = useTranslations();
+  const tProfile = useTranslations('sections.profile');
   const [wechatOpen, setWechatOpen] = React.useState(false);
   const displayName = locale === 'zh' ? profile.nameZh : profile.nameEn;
   const initials = profile.handle.slice(0, 2).toUpperCase();
@@ -83,7 +84,7 @@ export function ProfileHubCard({
         >
           <div className="space-y-3 lg:space-y-4">
             <Badge tone="accent" className="uppercase tracking-[0.2em]">
-              {locale === 'zh' ? '可招聘' : 'Open to roles'}
+              {tProfile('openToRoles')}
             </Badge>
             <p className="text-sm text-muted-foreground">{t('hero.greeting')}</p>
             <h1
@@ -125,7 +126,7 @@ export function ProfileHubCard({
         <div className="grid gap-5 sm:grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10">
           <div className="space-y-2">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              {locale === 'zh' ? '关于' : 'About'}
+              {tProfile('about')}
             </p>
             <p className="text-pretty text-base leading-relaxed text-foreground/90 sm:text-lg lg:text-xl">
               {pickLocale(profile.slogan, locale)}
@@ -142,7 +143,7 @@ export function ProfileHubCard({
             className="flex flex-col gap-3 lg:items-end lg:text-right"
           >
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              {locale === 'zh' ? '联系' : 'Reach out'}
+              {tProfile('contact')}
             </p>
             <motion.div
               initial="hidden"

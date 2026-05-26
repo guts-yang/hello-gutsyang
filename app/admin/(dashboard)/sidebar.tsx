@@ -13,9 +13,9 @@ const groups = [
     items: [
       { href: '/admin', label: '总览', icon: LayoutDashboard, exact: true },
       { href: '/admin/profile', label: 'Profile', icon: User },
-      { href: '/admin/projects', label: 'Projects', icon: FolderGit2 },
-      { href: '/admin/experiences', label: 'Experiences', icon: Briefcase },
-      { href: '/admin/honors', label: 'Honors', icon: Award },
+      { href: '/admin/projects', label: '项目', icon: FolderGit2 },
+      { href: '/admin/experiences', label: '经历', icon: Briefcase },
+      { href: '/admin/honors', label: '荣誉', icon: Award },
     ],
   },
   {

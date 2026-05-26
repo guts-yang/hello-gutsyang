@@ -5,9 +5,9 @@ import { getAdminStats } from '@/lib/admin-api';
 export default async function AdminHomePage() {
   const c = await getAdminStats().catch(() => ({ projects: 0, experiences: 0, honors: 0 }));
   const tiles = [
-    { label: 'Projects', value: c.projects, href: '/admin/projects' },
-    { label: 'Experiences', value: c.experiences, href: '/admin/experiences' },
-    { label: 'Honors', value: c.honors, href: '/admin/honors' },
+    { label: '项目', value: c.projects, href: '/admin/projects' },
+    { label: '经历', value: c.experiences, href: '/admin/experiences' },
+    { label: '荣誉', value: c.honors, href: '/admin/honors' },
   ];
   return (
     <div className="space-y-6">

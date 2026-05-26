@@ -14,7 +14,7 @@ export default async function AdminHonorsPage() {
     <div className="space-y-6">
       <header className="flex items-end justify-between">
         <div>
-          <h1 className="display-headline text-3xl text-gradient">Honors</h1>
+          <h1 className="display-headline text-3xl text-gradient">个人荣誉</h1>
           <p className="text-sm text-muted-foreground">{rows.length} 条记录</p>
         </div>
         <Button asChild variant="gradient" size="sm">

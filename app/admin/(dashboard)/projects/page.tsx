@@ -18,7 +18,7 @@ export default async function AdminProjectsPage({
 
   return (
     <AdminListShell
-      title="Projects"
+      title="项目"
       count={rows.length}
       newHref="/admin/projects/new"
       newLabel="新建"
