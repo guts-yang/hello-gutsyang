@@ -39,6 +39,7 @@ type Server struct {
 	loginLimiter    ratelimit.Limiter
 	chatLimiter     ratelimit.Limiter
 	chatListLimiter ratelimit.Limiter
+	adminAILimiter  ratelimit.Limiter
 
 	pool *pgxpool.Pool
 }
@@ -115,6 +116,7 @@ func New(ctx context.Context, cfg config.Config) (*Server, error) {
 		loginLimiter:    ratelimit.New(cfg.RateLimitLogin.Burst, cfg.RateLimitLogin.Window),
 		chatLimiter:     ratelimit.New(cfg.RateLimitChat.Burst, cfg.RateLimitChat.Window),
 		chatListLimiter: ratelimit.New(cfg.RateLimitAIList.Burst, cfg.RateLimitAIList.Window),
+		adminAILimiter:  ratelimit.New(cfg.RateLimitAdminAI.Burst, cfg.RateLimitAdminAI.Window),
 		pool:            pool,
 	}
 	return srv, nil
@@ -246,6 +248,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /v1/admin/honors/{id}", s.handleAdminHonorGet)
 	mux.HandleFunc("PUT /v1/admin/honors/{id}", s.handleAdminHonorUpdate)
 	mux.HandleFunc("DELETE /v1/admin/honors/{id}", s.handleAdminHonorDelete)
+	mux.HandleFunc("POST /v1/admin/ai/translate", s.handleAdminTranslate)
 	mux.HandleFunc("POST /v1/admin/media/upload-url", s.handleAdminUploadURL)
 	mux.HandleFunc("OPTIONS /v1/admin/media/upload/{token}", s.handleUploadOptions)
 	mux.HandleFunc("PUT /v1/admin/media/upload/{token}", s.handleUploadBinary)

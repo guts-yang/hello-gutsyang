@@ -58,6 +58,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 		RateLimitLogin:      config.RateLimitConfig{Burst: 1000, Window: time.Minute},
 		RateLimitChat:       config.RateLimitConfig{Burst: 1000, Window: time.Minute},
 		RateLimitAIList:     config.RateLimitConfig{Burst: 1000, Window: time.Minute},
+		RateLimitAdminAI:    config.RateLimitConfig{Burst: 1000, Window: time.Minute},
 		LoginLockout: config.LockoutConfig{
 			Threshold: 3,
 			Window:    time.Minute,
@@ -297,6 +298,85 @@ func TestE2E_LoginLockoutAfterRepeatedFailures(t *testing.T) {
 // starting a fresh one, deletion, and cross-owner isolation. The Go AI service
 // runs in demo mode (DEEPSEEK_API_KEY is unset in the fixture) so the upstream
 // stream is a canned string — but the persistence path is identical to prod.
+// TestE2E_AdminTranslate covers the new admin-only translation endpoint:
+// the happy path (admin + CSRF + items -> echoed back as "[EN] ..." in demo
+// mode), the CSRF guard, and the unauthenticated case. We deliberately
+// exercise demo mode (no DEEPSEEK_API_KEY in the fixture) so the test runs
+// hermetically without leaking real credits.
+func TestE2E_AdminTranslate(t *testing.T) {
+	t.Parallel()
+	ts, client, plain := newTestServer(t)
+	csrf := loginAsTony(t, ts, client, plain)
+
+	// Happy path.
+	body, _ := json.Marshal(map[string]any{
+		"items": map[string]string{
+			"title":   "我的硬核项目",
+			"summary": "围绕大模型遗忘学习的研究",
+			"empty":   "",
+		},
+	})
+	req, _ := http.NewRequest("POST", ts.URL+"/v1/admin/ai/translate", bytes.NewReader(body))
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("X-CSRF-Token", csrf)
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("translate: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		text, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		t.Fatalf("translate expected 200, got %d: %s", resp.StatusCode, text)
+	}
+	var ok struct {
+		Items map[string]string `json:"items"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&ok); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	resp.Body.Close()
+	if ok.Items["title"] != "[EN] 我的硬核项目" {
+		t.Fatalf("demo translate mismatch: %q", ok.Items["title"])
+	}
+	if ok.Items["summary"] == "" {
+		t.Fatalf("summary key dropped")
+	}
+	if ok.Items["empty"] != "" {
+		t.Fatalf("empty input should stay empty, got %q", ok.Items["empty"])
+	}
+
+	// CSRF missing -> 403.
+	req, _ = http.NewRequest("POST", ts.URL+"/v1/admin/ai/translate", bytes.NewReader(body))
+	req.Header.Set("content-type", "application/json")
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatalf("translate no csrf: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden {
+		t.Fatalf("missing csrf should be 403, got %d", resp.StatusCode)
+	}
+
+	// Not logged in -> 401. We need a fresh client so the previous session
+	// cookie is gone, plus a hand-rolled CSRF cookie + matching header so
+	// the request clears the CSRF gate and reaches requireAdmin.
+	freshJar, _ := cookiejar.New(nil)
+	freshClient := &http.Client{Jar: freshJar, Timeout: 5 * time.Second}
+	u, _ := url.Parse(ts.URL)
+	freshJar.SetCookies(u, []*http.Cookie{{Name: testCSRFCookie, Value: "stand-in"}})
+	req, _ = http.NewRequest("POST", ts.URL+"/v1/admin/ai/translate", bytes.NewReader(body))
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("X-CSRF-Token", "stand-in")
+	resp, err = freshClient.Do(req)
+	if err != nil {
+		t.Fatalf("translate unauth: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("unauthenticated should be 401, got %d", resp.StatusCode)
+	}
+}
+
 func TestE2E_ChatSessionLifecycle(t *testing.T) {
 	t.Parallel()
 	ts, clientA, _ := newTestServer(t)

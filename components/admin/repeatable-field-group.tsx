@@ -5,6 +5,11 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Field, TextInput } from '@/components/admin/form-fields';
 
+// LocalizedRow keeps the bilingual schema even though the UI is now zh-only.
+// The `en` field is filled by the AiTranslateBar (or by the Server Action's
+// ensureEnglish fallback at save time) and is serialized into the hidden
+// input alongside the zh value so downstream `actions.ts` can keep its
+// existing parser shape.
 export type LocalizedRow = { zh: string; en: string };
 
 export function RepeatableFieldGroup({
@@ -46,23 +51,16 @@ export function RepeatableFieldGroup({
       {rows.map((row, index) => (
         <div
           key={index}
-          className="grid gap-3 rounded-2xl border border-white/30 bg-white/30 p-3 dark:border-white/10 dark:bg-white/5 sm:grid-cols-2"
+          className="grid gap-3 rounded-2xl border border-white/30 bg-white/30 p-3 dark:border-white/10 dark:bg-white/5"
         >
-          <Field label={`中文 #${index + 1}`}>
+          <Field label={`#${index + 1}`}>
             <TextInput
               value={row.zh}
               onChange={(e) => update(index, { zh: e.target.value })}
-              placeholder="中文"
+              placeholder="填中文即可，英文由 AI 一键生成"
             />
           </Field>
-          <Field label={`English #${index + 1}`}>
-            <TextInput
-              value={row.en}
-              onChange={(e) => update(index, { en: e.target.value })}
-              placeholder="English"
-            />
-          </Field>
-          <div className="sm:col-span-2 flex justify-end">
+          <div className="flex justify-end">
             <Button type="button" variant="outline" size="sm" onClick={() => remove(index)}>
               <Trash2 className="h-3.5 w-3.5" />
               删除
