@@ -28,11 +28,9 @@ async function counts() {
 export default async function AdminHomePage() {
   const c = await counts();
   const tiles = [
-    { label: 'Projects', value: c.projects, href: '/admin/projects' },
-    { label: 'Experiences', value: c.experiences, href: '/admin/experiences' },
-    { label: 'Honors', value: c.honors, href: '/admin/honors' },
-    { label: 'Posts', value: c.posts, href: '/admin/posts' },
-    { label: 'Views', value: c.views, href: '/admin/analytics' },
+    { label: '项目', value: c.projects, href: '/admin/projects' },
+    { label: '经历', value: c.experiences, href: '/admin/experiences' },
+    { label: '荣誉', value: c.honors, href: '/admin/honors' },
   ];
   return (
     <div className="space-y-6">

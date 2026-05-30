@@ -131,7 +131,7 @@ npm run dev:frontend  # Next.js  → :3000
 
 **Public**：`/v1/public/home` `/profile` `/projects[/:slug]` `/experiences[/:slug]` `/honors` `/education` `/timeline`
 
-**Admin**：`/v1/admin/login` `/logout` `/session` `/password` `/email` `/sessions` `/audit` `/profile` `/projects` `/experiences` `/honors` `/media/upload-url`
+**Admin**：`/v1/admin/login` `/logout` `/session` `/password` `/email` `/sessions` `/audit` `/profile` `/projects` `/experiences` `/honors` `/media/upload-url` · `POST /v1/admin/ai/translate`（中文 → 英文）
 
 **访客 AI**：`POST /v1/ai/chat`（流式回答 + 落库）· `GET /v1/ai/sessions` · `GET /v1/ai/sessions/:id/messages` · `DELETE /v1/ai/sessions/:id`
 
@@ -145,6 +145,17 @@ npm run dev:frontend  # Next.js  → :3000
 - **失败锁定**：每 IP 或每邮箱在 15 分钟内累计 5 次失败 → 429 + `Retry-After`
 - **审计**：登录、改密、改邮箱、踢会话、CMS 增删改写入 `admin_audit`，前端在 `/admin/audit` 可视化
 - **运维**：忘记密码用 `go run ./cmd/api reset-password admin@example.com`，改邮箱用 `set-email`，重启即生效
+
+## 后台只填中文，英文由 AI 兜底
+
+四张管理表单（个人信息 / 项目 / 履历 / 荣誉）现在只暴露中文输入框。每张表单顶部都有「AI 一键生成英文」按钮：
+
+- 浏览器调用 `POST /v1/admin/ai/translate`（admin session + CSRF + `RATE_LIMIT_ADMIN_AI_*` 限流）
+- 后端把多个字段一次性丢给 DeepSeek（非流式 JSON），保持术语一致并减少往返
+- 生成结果回填到隐藏的 `*_en` 字段；可展开「英文预览」肉眼检查
+- 若管理员忘了点按钮，Server Action（`saveProfile / saveProject / saveExperience / saveHonor`）保存前会自动再调一次翻译兜底；DeepSeek 失败时退而求其次把中文复制到英文字段，保证保存永远成功
+
+> 想要真正的双语，**必须**在生产环境填 `DEEPSEEK_API_KEY`。没填时翻译走 demo 模式，会输出 `[EN] 中文`，方便本地调试但不要上线。
 
 ## 默认安全与稳定性
 
@@ -166,6 +177,7 @@ npm run dev:frontend  # Next.js  → :3000
 - [ ] 把 Postgres 的 `admin_users` / `admin_sessions` / `admin_audit` / `admin_login_attempts` / `chat_sessions` / `chat_messages` 纳入备份策略
 - [ ] 验证：故意输错 5 次密码 → 收到 429 + `Retry-After`
 - [ ] 验证：随便从浏览器 devtools 删掉 csrf cookie → POST 写接口收到 403
+- [ ] `DEEPSEEK_API_KEY` 必填，否则后台保存的英文会是 `[EN] xxx`
 
 ## 走向生产的下一步（可选）
 

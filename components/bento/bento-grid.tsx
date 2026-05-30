@@ -1,3 +1,4 @@
+﻿import { getTranslations } from 'next-intl/server';
 import type { Locale } from '@/i18n';
 import { ProfileHubCard } from './profile-hub-card';
 import { ProjectCard } from './project-card';
@@ -17,14 +18,8 @@ import {
 } from '@/lib/content';
 
 export async function BentoGrid({ locale }: { locale: Locale }) {
-  const [profile, projects, experiences, honors, education, timeline] = await Promise.all([
-    getProfile(),
-    getProjects(),
-    getExperiences(),
-    getHonors(),
-    getEducation(),
-    getTimeline(),
-  ]);
+  const t = await getTranslations({ locale, namespace: 'sections' });
+  const { profile, projects, experiences, honors, education, timeline } = await getHomeContent();
 
   const projectCards = projects.slice(0, 3);
   const academicHero = projectCards.find((p) => p.kind === 'academic') ?? projectCards[0];
@@ -55,8 +50,8 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
       {/* Section: Projects */}
       <SectionHeader
         id="projects"
-        title={locale === 'zh' ? '硬核项目矩阵' : 'Project Matrix'}
-        subtitle={locale === 'zh' ? '学术研究 · 工程落地' : 'Research · Engineering'}
+        title={t('projects.title')}
+        subtitle={t('projects.subtitle')}
       />
 
       {academicHero && (
@@ -73,8 +68,8 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
       {/* Section: Experience + Honors */}
       <SectionHeader
         id="experience"
-        title={locale === 'zh' ? '工作与实践' : 'Work & Practice'}
-        subtitle={locale === 'zh' ? '在真实场景中验证想法' : 'Validating ideas in real environments'}
+        title={t('experience.title')}
+        subtitle={t('experience.subtitle')}
       />
       {primaryExperience && (
         <Reveal className="md:col-span-7">
@@ -88,8 +83,8 @@ export async function BentoGrid({ locale }: { locale: Locale }) {
       {/* Section: Timeline */}
       <SectionHeader
         id="timeline"
-        title={locale === 'zh' ? '成长时间轴' : 'Growth Timeline'}
-        subtitle={locale === 'zh' ? '从课堂到赛场到实验室' : 'Classroom → competition → lab'}
+        title={t('timeline.title')}
+        subtitle={t('timeline.subtitle')}
       />
       <Reveal className="md:col-span-12">
         <TimelineCard events={timeline} locale={locale} />

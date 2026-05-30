@@ -1,9 +1,11 @@
 'use client';
 
+import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { GlassCard } from '@/components/glass-card';
 import { Button } from '@/components/ui/button';
 import { Field, TextInput, TextArea, Switch } from '@/components/admin/form-fields';
+import { AiTranslateBar } from '@/components/admin/ai-translate-bar';
 import { saveHonor } from '@/app/admin/actions';
 import type { DbHonorRow } from '@/lib/api-types';
 
@@ -20,10 +22,24 @@ function SubmitButton() {
 
 export function HonorForm({ row }: { row?: DbHonorRow }) {
   const [state, formAction] = useFormState<FormResult, FormData>(saveHonor as never, undefined);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form ref={formRef} action={formAction} className="space-y-5">
       {row && <input type="hidden" name="id" value={row.id} />}
+
+      <AiTranslateBar
+        formRef={formRef}
+        scalars={[
+          { zhName: 'title_zh', enName: 'title_en', label: '标题' },
+          { zhName: 'story_zh', enName: 'story_en', label: '故事' },
+        ]}
+        initialEn={{
+          title_en: row?.title_en ?? '',
+          story_en: row?.story_en ?? '',
+        }}
+      />
+
       <GlassCard>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Pillar">
@@ -44,20 +60,15 @@ export function HonorForm({ row }: { row?: DbHonorRow }) {
           <Field label="标题（中文）">
             <TextInput name="title_zh" defaultValue={row?.title_zh} required />
           </Field>
-          <Field label="Title (English)">
-            <TextInput name="title_en" defaultValue={row?.title_en} required />
-          </Field>
           <Field label="故事（中文）" className="sm:col-span-2">
             <TextArea name="story_zh" defaultValue={row?.story_zh} rows={4} />
-          </Field>
-          <Field label="Story (English)" className="sm:col-span-2">
-            <TextArea name="story_en" defaultValue={row?.story_en} rows={4} />
           </Field>
           <Field label="发布">
             <Switch name="is_published" defaultChecked={row?.is_published ?? true} />
           </Field>
         </div>
       </GlassCard>
+
       <div className="flex items-center gap-3">
         <SubmitButton />
         {state?.ok === false && <p className="text-xs text-rose-500">{state.message}</p>}

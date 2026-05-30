@@ -17,14 +17,24 @@ import { cn } from '@/lib/utils';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
-const items = [
-  { href: '/admin', label: '总览', icon: LayoutDashboard, exact: true },
-  { href: '/admin/profile', label: 'Profile', icon: User },
-  { href: '/admin/projects', label: 'Projects', icon: FolderGit2 },
-  { href: '/admin/experiences', label: 'Experiences', icon: Briefcase },
-  { href: '/admin/honors', label: 'Honors', icon: Award },
-  { href: '/admin/posts', label: 'Posts', icon: PenSquare },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+const groups = [
+  {
+    title: '内容',
+    items: [
+      { href: '/admin', label: '总览', icon: LayoutDashboard, exact: true },
+      { href: '/admin/profile', label: 'Profile', icon: User },
+      { href: '/admin/projects', label: '项目', icon: FolderGit2 },
+      { href: '/admin/experiences', label: '经历', icon: Briefcase },
+      { href: '/admin/honors', label: '荣誉', icon: Award },
+    ],
+  },
+  {
+    title: '账号',
+    items: [
+      { href: '/admin/settings', label: '设置', icon: Settings },
+      { href: '/admin/audit', label: '审计', icon: ScrollText },
+    ],
+  },
 ];
 
 export function AdminSidebar({ email }: { email: string }) {

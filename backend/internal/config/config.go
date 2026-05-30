@@ -29,9 +29,10 @@ type Config struct {
 
 	MediaMaxUploadBytes int64
 
-	RateLimitLogin  RateLimitConfig
-	RateLimitChat   RateLimitConfig
-	RateLimitAIList RateLimitConfig
+	RateLimitLogin   RateLimitConfig
+	RateLimitChat    RateLimitConfig
+	RateLimitAIList  RateLimitConfig
+	RateLimitAdminAI RateLimitConfig
 
 	LoginLockout LockoutConfig
 }
@@ -117,6 +118,10 @@ func Load() Config {
 		RateLimitAIList: RateLimitConfig{
 			Burst:  getEnvInt("RATE_LIMIT_AI_LIST_BURST", 60),
 			Window: getEnvDuration("RATE_LIMIT_AI_LIST_WINDOW", time.Minute),
+		},
+		RateLimitAdminAI: RateLimitConfig{
+			Burst:  getEnvInt("RATE_LIMIT_ADMIN_AI_BURST", 30),
+			Window: getEnvDuration("RATE_LIMIT_ADMIN_AI_WINDOW", time.Minute),
 		},
 
 		LoginLockout: LockoutConfig{

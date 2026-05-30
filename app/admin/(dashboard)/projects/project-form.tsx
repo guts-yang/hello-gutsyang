@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field, TextInput, TextArea, Switch } from '@/components/admin/form-fields';
 import { RepeatableFieldGroup, type LocalizedRow } from '@/components/admin/repeatable-field-group';
 import { ImageUploader } from '@/components/admin/image-uploader';
+import { AiTranslateBar } from '@/components/admin/ai-translate-bar';
 import { saveProject } from '@/app/admin/actions';
 import type { DbProjectRow } from '@/lib/api-types';
 
@@ -26,13 +27,32 @@ export function ProjectForm({ row }: { row?: DbProjectRow }) {
   const [highlights, setHighlights] = React.useState<LocalizedRow[]>(
     () => (row?.highlights as LocalizedRow[]) ?? [],
   );
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form ref={formRef} action={formAction} className="space-y-5">
       {row && <input type="hidden" name="id" value={row.id} />}
+
+      <AiTranslateBar
+        formRef={formRef}
+        scalars={[
+          { zhName: 'title_zh', enName: 'title_en', label: '标题' },
+          { zhName: 'tagline_zh', enName: 'tagline_en', label: '一句话' },
+          { zhName: 'summary_zh', enName: 'summary_en', label: '简介' },
+        ]}
+        groups={[
+          { name: 'highlights', label: '亮点 Highlights', rows: highlights, setRows: setHighlights },
+        ]}
+        initialEn={{
+          title_en: row?.title_en ?? '',
+          tagline_en: row?.tagline_en ?? '',
+          summary_en: row?.summary_en ?? '',
+        }}
+      />
+
       <GlassCard>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Slug" hint="URL 标识">
+          <Field label="Slug" hint="URL 标识（语言无关）">
             <TextInput name="slug" defaultValue={row?.slug} required />
           </Field>
           <Field label="Kind">
@@ -48,28 +68,23 @@ export function ProjectForm({ row }: { row?: DbProjectRow }) {
           <Field label="标题（中文）">
             <TextInput name="title_zh" defaultValue={row?.title_zh} required />
           </Field>
-          <Field label="Title (English)">
-            <TextInput name="title_en" defaultValue={row?.title_en} required />
-          </Field>
           <Field label="一句话（中文）">
             <TextInput name="tagline_zh" defaultValue={row?.tagline_zh} />
-          </Field>
-          <Field label="Tagline (English)">
-            <TextInput name="tagline_en" defaultValue={row?.tagline_en} />
           </Field>
           <Field label="简介（中文）" className="sm:col-span-2">
             <TextArea name="summary_zh" defaultValue={row?.summary_zh} rows={4} />
           </Field>
-          <Field label="Summary (English)" className="sm:col-span-2">
-            <TextArea name="summary_en" defaultValue={row?.summary_en} rows={4} />
-          </Field>
-          <Field label="标签（用逗号分隔）" className="sm:col-span-2" hint="如：LLM, PyTorch, NeurIPS">
+          <Field
+            label="标签（用逗号分隔）"
+            className="sm:col-span-2"
+            hint="技术 keyword 通常本身就是英文专有名词，如：LLM, PyTorch, NeurIPS"
+          >
             <TextInput name="tags" defaultValue={row?.tags?.join(', ') ?? ''} />
           </Field>
           <div className="sm:col-span-2">
             <RepeatableFieldGroup
               name="highlights"
-              label="亮点 Highlights"
+              label="亮点 Highlights（中文）"
               rows={highlights}
               onChange={setHighlights}
             />

@@ -24,37 +24,42 @@
     "ai": {
       "title": "AI Concierge",
       "subtitle": "Ask anything about me in natural language",
-      "placeholder": "Try: What's the most hardcore project you've shipped?",
+      "placeholder": "Try: Which project best represents your work?",
       "send": "Send",
       "thinking": "Thinking…"
     },
     "projects": {
-      "title": "Project Matrix",
-      "subtitle": "Research-grade and production engineering, side by side",
+      "title": "Selected Work",
+      "subtitle": "Research · Engineering Practice",
       "academic": "Research",
       "engineering": "Engineering",
       "viewMore": "View details"
     },
     "experience": {
-      "title": "Work & Practice",
+      "title": "Experience",
       "subtitle": "Validating ideas in real environments",
       "viewMore": "View details"
     },
     "honors": {
-      "title": "Soft-skills Matrix",
-      "subtitle": "Hover to flip and read the story",
+      "title": "Honors",
+      "subtitle": "Character · Intellect · Sports · Arts · Labor · View details",
       "morality": "Leadership",
       "wisdom": "Curiosity",
       "athletics": "Resilience",
       "labor": "Contribution"
     },
     "timeline": {
-      "title": "Growth Timeline",
-      "subtitle": "Classroom → competition → lab"
+      "title": "Journey",
+      "subtitle": "Academics · Competitions · Research & Practice"
     },
     "education": {
       "title": "Education",
       "subtitle": "Always learning"
+    },
+    "profile": {
+      "openToRoles": "Open to roles",
+      "about": "About",
+      "contact": "Contact"
     }
   },
   "social": {

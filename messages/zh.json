@@ -24,37 +24,42 @@
     "ai": {
       "title": "AI 助手",
       "subtitle": "用自然语言问问关于我的一切",
-      "placeholder": "试试：你做过最硬核的项目是什么？",
+      "placeholder": "试试：你最代表水平的一项项目是什么？",
       "send": "发送",
       "thinking": "思考中…"
     },
     "projects": {
-      "title": "硬核项目矩阵",
-      "subtitle": "学术研究与工程落地双向输出",
-      "academic": "学术科研",
-      "engineering": "全栈工程",
+      "title": "项目作品",
+      "subtitle": "学术研究 · 工程实践",
+      "academic": "学术研究",
+      "engineering": "工程实践",
       "viewMore": "查看详情"
     },
     "experience": {
-      "title": "工作与实践",
+      "title": "实践经历",
       "subtitle": "在真实场景中验证想法",
       "viewMore": "查看详情"
     },
     "honors": {
-      "title": "综合素养矩阵",
-      "subtitle": "悬停翻面看故事",
+      "title": "个人荣誉",
+      "subtitle": "德智体美劳 · 点击查看详情",
       "morality": "德 · 领导力",
       "wisdom": "智 · 钻研力",
       "athletics": "体 · 抗压力",
       "labor": "劳 · 奉献"
     },
     "timeline": {
-      "title": "成长时间轴",
-      "subtitle": "从课堂到赛场到实验室"
+      "title": "发展历程",
+      "subtitle": "学业 · 竞赛 · 科研与实践"
     },
     "education": {
       "title": "教育背景",
       "subtitle": "持续学习是底色"
+    },
+    "profile": {
+      "openToRoles": "求职状态",
+      "about": "关于我",
+      "contact": "联系"
     }
   },
   "social": {
